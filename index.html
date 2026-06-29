@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🍀 행운의 편지 메이커</title>
+<title>🍀 시험 행운의 편지 메이커</title>
 
 <!-- UI 폰트 -->
 <link rel="stylesheet" as="style" crossorigin
@@ -86,6 +86,12 @@
   .field input:focus, .field select:focus, .card textarea:focus, .card input:focus{
     outline:none; border-color:var(--green); box-shadow:0 0 0 3px rgba(58,157,35,.14);
   }
+  .field label.chk{
+    display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+    font-size:.92rem; font-weight:600; color:var(--ink);
+    padding:9px 11px; border:1.5px solid #d9e6d2; border-radius:10px; background:#fcfdfb;
+  }
+  .field label.chk input{ width:17px; height:17px; accent-color:var(--green); cursor:pointer; }
 
   .cards{display:flex; flex-direction:column; gap:14px;}
   .card{
@@ -163,19 +169,22 @@
   }
   .cell{
     position:relative;
-    border:2px dashed #aed49f; border-radius:14px;
-    background:rgba(255,255,255,.58);
+    border:1.5px solid rgba(120,160,110,.30); border-radius:14px;
+    background-color:rgba(255,255,255,.6);
+    background-size:cover; background-position:center; background-repeat:no-repeat;
     padding:16px 14px;
     overflow:hidden;
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
-  /* 셀 모서리 클로버 악센트 */
-  .cell::after{
-    content:""; position:absolute; right:10px; bottom:8px; width:22px; height:22px; opacity:.5;
-    background:no-repeat center/contain
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%233a9d23' d='M12 12c0-3-2.2-5-4.6-4.4C5 8.2 5 11 8 12c-3 1-3 3.8-.6 4.4C9.8 17 12 15 12 12zm0 0c0 3 2.2 5 4.6 4.4C19 15.8 19 13 16 12c3-1 3-3.8.6-4.4C14.2 7 12 9 12 12z'/%3E%3C/svg%3E");
+  /* 배경 그림 위 흰 베일: 가운데는 진하게(글씨 가독성↑), 가장자리는 옅게(그림이 보이게) */
+  .cell.has-bg::before{
+    content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
+    background:radial-gradient(ellipse at center,
+      rgba(255,255,255,.82) 0%, rgba(255,255,255,.62) 42%, rgba(255,255,255,.30) 100%);
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
   .content{
+    position:relative; z-index:1;
     font-size:15px; height:100%;
     display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px;
   }
@@ -221,7 +230,7 @@
 
 <header class="bar">
   <div class="brand">
-    <h1>🍀 행운의 편지 메이커</h1>
+    <h1>🍀 시험 행운의 편지 메이커</h1>
     <span class="sub">내용만 적으면 A4 한 장(편지 6개) 완성</span>
   </div>
   <div class="spacer"></div>
@@ -254,6 +263,10 @@
         <label for="optMaker">만든 사람 (맨 아래 표시)</label>
         <input type="text" id="optMaker" placeholder="예) 해누리중학교 조승재">
       </div>
+      <div class="field">
+        <label>카드 배경 그림</label>
+        <label class="chk"><input type="checkbox" id="optBg" checked> 배경 그림 사용</label>
+      </div>
     </div>
 
     <div class="cards" id="cards"></div>
@@ -262,7 +275,8 @@
       💡 <b>받는 사람 · 편지 내용</b>만 적으면 오른쪽 미리보기가 바로 바뀌어요. 추신은 비워둬도 됩니다.<br>
       🎲 추신 칸 옆 <b>주사위</b>를 누르면 시험 응원·노력·공부 명언이 랜덤으로 들어가요. 헤더의 <b>추신 전체 랜덤</b>은 6칸을 한 번에 채웁니다.<br>
       💾 작성한 내용은 이 브라우저에 <b>자동 저장</b>돼요. 창을 닫았다 열어도 그대로 남아 있어요.<br>
-      🖨️ <b>인쇄 / PDF로 저장</b>을 누른 뒤 인쇄 창에서 프린터 대신 <b>"PDF로 저장"</b>을 고르면 인쇄용 PDF 파일이 만들어집니다.
+      🖨️ <b>인쇄 / PDF로 저장</b>을 누른 뒤 인쇄 창에서 프린터 대신 <b>"PDF로 저장"</b>을 고르면 인쇄용 PDF 파일이 만들어집니다.<br>
+      🖼️ 카드 배경 그림이 인쇄에 나오려면 인쇄 창의 <b>'배경 그래픽(Background graphics)'</b> 옵션을 켜주세요. 그림이 없거나 끄고 싶으면 위 <b>배경 그림 사용</b> 체크를 해제하면 돼요.
     </p>
   </section>
 
@@ -379,6 +393,16 @@
   ];
   var PS_QUOTES = PS_CHEER.concat(PS_EFFORT, PS_STUDY);
 
+  // 카드(1~6번)별 배경 그림 — HTML 파일과 같은 폴더에 두세요
+  var CARD_BG = [
+    "bg1-clover.png",
+    "bg2-pencil.png",
+    "bg3-book.png",
+    "bg4-star.png",
+    "bg5-medal.png",
+    "bg6-heart.png"
+  ];
+
   function pickQuote(exclude){
     if(!PS_QUOTES.length) return "";
     if(PS_QUOTES.length === 1) return PS_QUOTES[0];
@@ -413,7 +437,7 @@
   var editorBound = false;
 
   function blank(){
-    return { title:"행운의 편지", font:"round", maker:"해누리중학교 조승재",
+    return { title:"행운의 편지", font:"round", maker:"해누리중학교 조승재", useBg:true,
       letters: Array.from({length:COUNT}, function(){ return {to:"", body:"", ps:""}; }) };
   }
 
@@ -430,6 +454,7 @@
       s.letters = s.letters.slice(0, COUNT);
       if(typeof s.title !== "string") s.title = "행운의 편지";
       if(typeof s.maker !== "string") s.maker = "해누리중학교 조승재";
+      if(typeof s.useBg !== "boolean") s.useBg = true;
       if(!FONTS[s.font]) s.font = "round";
       return s;
     }catch(e){ return blank(); }
@@ -472,9 +497,11 @@
     var optTitle = document.getElementById("optTitle");
     var optFont  = document.getElementById("optFont");
     var optMaker = document.getElementById("optMaker");
+    var optBg    = document.getElementById("optBg");
     optTitle.value = state.title;
     optFont.value  = state.font;
     if(optMaker) optMaker.value = state.maker || "";
+    if(optBg) optBg.checked = state.useBg !== false;
 
     if(!editorBound){
       editorBound = true;
@@ -503,6 +530,9 @@
       });
       if(optMaker) optMaker.addEventListener("input", function(){
         state.maker = optMaker.value; save(); renderCredit(); fitAll();
+      });
+      if(optBg) optBg.addEventListener("change", function(){
+        state.useBg = optBg.checked; save(); renderAll();
       });
     }
   }
@@ -533,12 +563,22 @@
            '</div>';
   }
 
+  function applyCellBg(cell, i){
+    if(state.useBg && CARD_BG[i]){
+      cell.classList.add("has-bg");
+      cell.style.backgroundImage = "url('" + CARD_BG[i] + "')";
+    } else {
+      cell.classList.remove("has-bg");
+      cell.style.backgroundImage = "";
+    }
+  }
   function renderAll(){
     var grid = document.getElementById("grid");
     grid.innerHTML = "";
-    state.letters.forEach(function(L){
+    state.letters.forEach(function(L, i){
       var cell = document.createElement("div");
       cell.className = "cell";
+      applyCellBg(cell, i);
       cell.innerHTML = cellHTML(L);
       grid.appendChild(cell);
     });
@@ -549,6 +589,7 @@
     var grid = document.getElementById("grid");
     var cell = grid.children[i];
     if(!cell) return renderAll();
+    applyCellBg(cell, i);
     cell.innerHTML = cellHTML(state.letters[i]);
     fit(cell);
   }
