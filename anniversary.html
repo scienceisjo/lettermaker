@@ -88,6 +88,8 @@
   .field .btn{ padding:9px 13px; }
   .bg-up{ display:flex; gap:8px; align-items:center; }
   .bg-name{ font-size:.74rem; color:#8a9282; margin-top:2px; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .note-line{ display:block; font-size:.74rem; color:#8a9282; margin-top:4px; max-width:280px; line-height:1.45; }
+  .note-line.warn-text{ color:#c0392b; font-weight:700; }
   input[type=range]{ width:170px; accent-color:var(--accent); cursor:pointer; }
 
   .cards{display:flex; flex-direction:column; gap:14px;}
@@ -313,6 +315,11 @@
         <label class="chk"><input type="checkbox" id="optBg" checked> 배경 그림 사용</label>
       </div>
       <div class="field">
+        <label>전체 뒷배경 (카드 뒤 무늬)</label>
+        <label class="chk"><input type="checkbox" id="optSheetBg"> 켜기</label>
+        <span class="note-line" id="sheetBgNote"></span>
+      </div>
+      <div class="field">
         <label>배경 이미지 업로드</label>
         <div class="bg-up">
           <label class="btn ghost" for="optBgFile">🖼️ 이미지 선택</label>
@@ -324,6 +331,11 @@
       <div class="field">
         <label for="optBgOpacity">배경 투명도 <span id="bgOpacityVal">50%</span></label>
         <input type="range" id="optBgOpacity" min="10" max="100" step="5" value="50">
+      </div>
+      <div class="field">
+        <label for="optQuality">인쇄·저장 화질</label>
+        <select id="optQuality"></select>
+        <span class="note-line" id="qualityNote"></span>
       </div>
       <div class="field">
         <label>한 번에 채우기</label>
@@ -338,6 +350,7 @@
       📐 <b>편지 배치</b>로 6칸(쪽지)부터 1장(긴 손편지)까지 고를 수 있어요. <b>1번 내용 전체 복사</b>는 반 전체에 같은 글을 보낼 때 편해요.<br>
       🎲 추신 칸 옆 <b>주사위</b>를 누르면 상황에 맞는 메시지가 랜덤으로 들어가요. 🎨 <b>템플릿</b>을 바꾸면 배경·색이 통째로 바뀝니다. 💾 자동 저장돼요.<br>
       🖼️ <b>배경 이미지 업로드</b> 후 <b>배경 투명도</b>로 사진을 연하게 만들어 그 위에 편지를 쓸 수 있어요. (업로드한 사진은 저장되지 않아요)<br>
+      🖨️ 인쇄가 안 되거나 PDF 용량이 너무 크면 <b>인쇄·저장 화질</b>을 ‘표준’ 이하로 낮춰 보세요. 프린터 ‘메모리 부족’ 오류를 피할 수 있어요.<br>
       🖨️ <b>인쇄 / PDF로 저장</b> → 인쇄 창에서 프린터 대신 <b>"PDF로 저장"</b> 선택. 배경이 나오게 하려면 <b>'배경 그래픽'</b> 옵션을 켜주세요.
     </p>
   </section>
@@ -476,7 +489,7 @@ var CONFIGS = {
 };
 
 /* 이 한 줄만 페이지마다 다릅니다 */
-var ACTIVE = "anniversary";
+var ACTIVE = "birthday";
 
 /* ====================================================================
    엔진 (모든 카테고리 공통)
@@ -533,6 +546,15 @@ var ACTIVE = "anniversary";
     return land ? {cols:3, rows:2} : {cols:2, rows:3};
   }
 
+  /* ---------- 인쇄·저장 화질 (PDF 용량 제어) ---------- */
+  var EXPORT_Q = {
+    light:    {name:"가벼움 · 작은 용량 (이메일·빠른 인쇄)",      max:900,  q:0.6},
+    standard: {name:"표준 · 권장",                              max:1400, q:0.78},
+    high:     {name:"고화질 · 용량 큼 (인쇄가 무거울 수 있어요)", max:2200, q:0.9},
+    original: {name:"원본 · 최대 용량 (인쇄 어려울 수 있음)",     max:0,    q:0.95}
+  };
+  function exportPreset(){ return EXPORT_Q[state.exportQuality] || EXPORT_Q.standard; }
+
   /* ---------- 색상 도우미 (color-mix 의존 없이 JS로 계산) ---------- */
   function hx(c){ c=String(c).replace("#",""); if(c.length===3)c=c.split("").map(function(x){return x+x;}).join(""); return [parseInt(c.slice(0,2),16),parseInt(c.slice(2,4),16),parseInt(c.slice(4,6),16)]; }
   function toHex(a){ return "#"+a.map(function(v){ v=Math.max(0,Math.min(255,Math.round(v))); return (v<16?"0":"")+v.toString(16); }).join(""); }
@@ -568,8 +590,51 @@ var ACTIVE = "anniversary";
   function rng(seed){ var s=(seed>>>0)||1; return function(){ s=(Math.imul(s,1664525)+1013904223)>>>0; return s/4294967296; }; }
 
   var bgCache = {};
+  var imgOptCache = {};
+  var imgOptPending = {};
+  /* 사진을 화질 설정에 맞춰 축소+JPEG 압축 → PDF/인쇄 용량을 크게 낮춤 */
+  function optimizeImage(src, preset, cb){
+    if(!src){ cb(src); return; }
+    if(preset.max===0){ cb(src); return; }            /* 원본 = 그대로 */
+    try{
+      var img = new Image();
+      img.onload = function(){
+        try{
+          var w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+          if(!w||!h){ cb(src); return; }
+          var scale=Math.min(1, preset.max/Math.max(w,h));
+          var cw=Math.max(1,Math.round(w*scale)), ch=Math.max(1,Math.round(h*scale));
+          var cv=document.createElement("canvas"); cv.width=cw; cv.height=ch;
+          var ctx=cv.getContext && cv.getContext("2d");
+          if(!ctx){ cb(src); return; }
+          ctx.drawImage(img,0,0,cw,ch);
+          var out=cv.toDataURL("image/jpeg", preset.q);
+          cb(out||src);
+        }catch(e){ cb(src); }                          /* 캔버스 오류 시 원본 */
+      };
+      img.onerror=function(){ cb(src); };
+      img.src=src;
+    }catch(e){ cb(src); }
+  }
+  function scheduleImgOpt(src){
+    var key=src+"#"+state.exportQuality;
+    if(imgOptCache[key]||imgOptPending[key]) return;
+    imgOptPending[key]=true;
+    optimizeImage(src, exportPreset(), function(out){
+      imgOptCache[key]=out; delete imgOptPending[key];
+      clearTimeout(scheduleImgOpt._t);
+      scheduleImgOpt._t=setTimeout(function(){ renderAll(); }, 60);
+    });
+  }
   function buildCardBg(tpl, i, layout){
-    if(tpl.images && tpl.images[i]) return "url('"+tpl.images[i]+"')";
+    if(tpl.images && tpl.images[i]){
+      var isrc=tpl.images[i];
+      if(exportPreset().max===0) return "url('"+isrc+"')";
+      var ikey=isrc+"#"+state.exportQuality;
+      if(imgOptCache[ikey]) return "url('"+imgOptCache[ikey]+"')";
+      scheduleImgOpt(isrc);
+      return "url('"+isrc+"')";
+    }
     var dim = LAYOUT_BG[layout] || LAYOUT_BG.six;
     var W=dim.W, H=dim.H;
     var key = tpl.id+"#"+layout+"#"+i;
@@ -634,7 +699,7 @@ var ACTIVE = "anniversary";
   function blank(){
     return { header:CONFIG.defaultHeader, font:"round", maker:"해누리중학교 조승재",
       useBg:true, templateId:defaultTplId(), layout:"six", from:"", date:"", bgOpacity:0.5,
-      paper:"a4p", deco:{items:[]},
+      paper:"a4p", deco:{items:[]}, exportQuality:"standard", sheetBg:false,
       letters: Array.from({length:COUNT}, function(){ return {to:"", body:"", ps:""}; }) };
   }
 
@@ -659,6 +724,8 @@ var ACTIVE = "anniversary";
       s.bgOpacity = Math.max(0.1, Math.min(1, s.bgOpacity));
       if(!PAPERS[s.paper]) s.paper = "a4p";
       if(!s.deco || !Array.isArray(s.deco.items)) s.deco = {items:[]};
+      if(!EXPORT_Q[s.exportQuality]) s.exportQuality = "standard";
+      if(typeof s.sheetBg !== "boolean") s.sheetBg = false;
       if(s.templateId == null || !getTemplate(s.templateId)) s.templateId = defaultTplId();
       return s;
     }catch(e){ return blank(); }
@@ -706,7 +773,7 @@ var ACTIVE = "anniversary";
     var tpl=currentTemplate();
     applyTheme(tpl.accent);
     var sheet=document.getElementById("sheet");
-    if(sheet) sheet.style.backgroundImage = buildSheetPattern(tpl);
+    if(sheet) sheet.style.backgroundImage = state.sheetBg ? buildSheetPattern(tpl) : "";
     renderAll();
   }
   function applyLayoutGrid(){
@@ -720,7 +787,8 @@ var ACTIVE = "anniversary";
   }
 
   var editorBound=false;
-  var userBgUrl=null;   /* 업로드한 배경 (메모리 전용, 저장 안 함) */
+  var userBgUrl=null;   /* 화면/인쇄용 (압축본) */
+  var userBgRaw=null;   /* 업로드 원본 (재압축용, 둘 다 저장 안 함) */
 
   /* ---------- 에디터 ---------- */
   function buildEditor(){
@@ -761,6 +829,10 @@ var ACTIVE = "anniversary";
     var bgName=document.getElementById("bgName");
     var optBgOpacity=document.getElementById("optBgOpacity");
     var bgOpacityVal=document.getElementById("bgOpacityVal");
+    var optQuality=document.getElementById("optQuality");
+    var qualityNote=document.getElementById("qualityNote");
+    var optSheetBg=document.getElementById("optSheetBg");
+    var sheetBgNote=document.getElementById("sheetBgNote");
 
     if(optTemplate){
       optTemplate.innerHTML = CONFIG.templates.map(function(t){
@@ -777,8 +849,10 @@ var ACTIVE = "anniversary";
     if(optMaker) optMaker.value = state.maker || "";
     if(optBg) optBg.checked = state.useBg !== false;
     if(optBgOpacity){ var pct=Math.round((state.bgOpacity||0.5)*100); optBgOpacity.value=String(pct); if(bgOpacityVal) bgOpacityVal.textContent=pct+"%"; }
+    if(optQuality){ if(!optQuality.options.length){ optQuality.innerHTML = Object.keys(EXPORT_Q).map(function(k){ return '<option value="'+k+'">'+esc(EXPORT_Q[k].name)+'</option>'; }).join(""); } optQuality.value = state.exportQuality; }
+    if(optSheetBg) optSheetBg.checked = !!state.sheetBg;
     if(btnBgClear) btnBgClear.hidden = !userBgUrl;
-    if(bgName) bgName.textContent = userBgUrl ? "이미지 적용됨" : "";
+    updateBgSize(); updateExportNote(); updateSheetBgNote();
 
     if(!editorBound){
       editorBound=true;
@@ -817,17 +891,17 @@ var ACTIVE = "anniversary";
         if(!f) return;
         var reader = new FileReader();
         reader.onload = function(ev){
-          userBgUrl = ev.target.result;
-          if(bgName) bgName.textContent = "이미지 적용됨";
+          userBgRaw = ev.target.result; userBgUrl = userBgRaw;
           if(btnBgClear) btnBgClear.hidden = false;
           if(!state.useBg){ state.useBg = true; if(optBg) optBg.checked = true; save(); }
-          applyUserBg(); renderAll();
+          applyUserBg(); renderAll(); updateBgSize();
+          optimizeImage(userBgRaw, exportPreset(), function(out){ userBgUrl = out; applyUserBg(); updateBgSize(); });
         };
         reader.readAsDataURL(f);
         try{ optBgFile.value=""; }catch(e){}
       });
       if(btnBgClear) btnBgClear.addEventListener("click", function(){
-        userBgUrl = null;
+        userBgUrl = null; userBgRaw = null;
         if(bgName) bgName.textContent = "";
         btnBgClear.hidden = true;
         applyUserBg(); renderAll();
@@ -837,6 +911,13 @@ var ACTIVE = "anniversary";
         state.bgOpacity = Math.max(0.1, Math.min(1, p/100));
         if(bgOpacityVal) bgOpacityVal.textContent = p+"%";
         save(); applyUserBg();
+      });
+      if(optQuality) optQuality.addEventListener("change", function(){
+        state.exportQuality = EXPORT_Q[optQuality.value] ? optQuality.value : "standard";
+        save(); applyExportQuality();
+      });
+      if(optSheetBg) optSheetBg.addEventListener("change", function(){
+        state.sheetBg = optSheetBg.checked; save(); applyTemplate(); updateSheetBgNote();
       });
     }
   }
@@ -870,6 +951,37 @@ var ACTIVE = "anniversary";
            '</div>';
   }
 
+  function updateBgSize(){
+    var el=document.getElementById("bgName"); if(!el) return;
+    if(!userBgUrl){ el.textContent=""; return; }
+    var kb=Math.round(userBgUrl.length*0.75/1024);
+    el.textContent="이미지 적용됨 · 약 "+(kb>=1024 ? (kb/1024).toFixed(1)+"MB" : kb+"KB");
+  }
+  function updateExportNote(){
+    var note=document.getElementById("qualityNote"); if(!note) return;
+    if(state.exportQuality==="high" || state.exportQuality==="original"){
+      note.textContent="⚠️ 용량이 커져 프린터에서 ‘메모리 부족’이 날 수 있어요. 인쇄가 안 되면 ‘표준’ 이하로 낮춰 주세요.";
+      note.classList.add("warn-text");
+    }else{
+      note.textContent="✅ 인쇄·저장에 가벼운 설정이에요. 사진을 자동으로 줄여 PDF 용량을 낮춥니다.";
+      note.classList.remove("warn-text");
+    }
+  }
+  function updateSheetBgNote(){
+    var note=document.getElementById("sheetBgNote"); if(!note) return;
+    if(state.sheetBg){
+      note.textContent="⚠️ 전체 뒷배경을 켜면 인쇄 용량이 커져 프린터에서 인쇄가 안 될 수 있어요. 인쇄 전에는 끄는 걸 권장해요.";
+      note.classList.add("warn-text");
+    }else{
+      note.textContent="인쇄가 가벼워요. (카드 뒤 전체 무늬 꺼짐)";
+      note.classList.remove("warn-text");
+    }
+  }
+  function applyExportQuality(){
+    if(userBgRaw){ optimizeImage(userBgRaw, exportPreset(), function(out){ userBgUrl=out; applyUserBg(); updateBgSize(); }); }
+    updateExportNote();
+    renderAll();
+  }
   function applyUserBg(){
     var layer=document.getElementById("userbg"), sheet=document.getElementById("sheet");
     if(!layer) return;
