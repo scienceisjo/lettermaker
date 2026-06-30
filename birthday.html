@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>편지 메이커</title>
+
+<link rel="stylesheet" as="style" crossorigin
+  href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@400;700&family=Nanum+Pen+Script&family=Dongle:wght@400;700&family=Gowun+Dodum&family=Gamja+Flower&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --accent:#3a9d23; --accent-d:#2c7d18; --accent-l:#e7f3e1; --accent-xl:#f1f8ed;
+    --accent-glow:rgba(58,157,35,.16);
+    --paper:#fffdf6; --ink:#2c3a26; --red:#e03e52;
+    --title-font:'Jua', sans-serif; --body-font:'Gaegu', cursive;
+    --shadow:0 10px 30px rgba(0,0,0,.07), 0 2px 8px rgba(0,0,0,.05);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Pretendard', -apple-system, sans-serif;
+    background:
+      radial-gradient(1200px 500px at 80% -10%, var(--accent-xl) 0%, transparent 60%),
+      radial-gradient(900px 450px at -5% 110%, #fdeef0 0%, transparent 55%),
+      #f5f6f3;
+    color:var(--ink); min-height:100vh;
+  }
+
+  header.bar{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    padding:14px 22px; background:rgba(255,255,255,.85);
+    backdrop-filter:saturate(140%) blur(10px); border-bottom:1px solid #e6e8e2;
+  }
+  .hub-link{
+    flex:0 0 auto; text-decoration:none; font-weight:700; font-size:.9rem; white-space:nowrap;
+    color:var(--accent-d); background:#fff; border:1.5px solid var(--accent-l); border-radius:11px;
+    padding:9px 13px; transition:.15s background,.15s transform;
+  }
+  .hub-link:hover{ background:var(--accent-xl); transform:translateX(-2px); }
+  .brand{display:flex; align-items:baseline; gap:10px;}
+  .brand h1{font-family:var(--title-font); font-weight:400; font-size:1.35rem; margin:0; letter-spacing:.3px; color:var(--accent-d);}
+  .brand .sub{font-size:.82rem; color:#6e756c;}
+  .bar .spacer{flex:1}
+  .btn{
+    font-family:inherit; font-size:.92rem; font-weight:700;
+    border:none; border-radius:11px; padding:10px 16px; cursor:pointer;
+    display:inline-flex; align-items:center; gap:7px; transition:.15s transform,.15s box-shadow,.15s background; white-space:nowrap;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn.ghost{background:#fff; color:var(--accent-d); border:1.5px solid var(--accent-l);}
+  .btn.ghost:hover{background:var(--accent-xl)}
+  .btn.warn{background:#fff; color:#b23; border:1.5px solid #f0c9cf;}
+  .btn.warn:hover{background:#fdeef0}
+  .btn.primary{background:var(--accent); color:#fff; box-shadow:0 6px 16px var(--accent-glow);}
+  .btn.primary:hover{background:var(--accent-d)}
+
+  .main{
+    display:grid; grid-template-columns: minmax(340px, 1fr) minmax(420px, 1.05fr);
+    gap:26px; align-items:start; max-width:1320px; margin:0 auto; padding:24px 22px 60px;
+  }
+  @media (max-width: 980px){ .main{grid-template-columns:1fr;} }
+
+  .editor h2{font-size:1rem; margin:2px 0 14px; color:var(--accent-d); font-weight:800; display:flex; align-items:center; gap:8px;}
+  .opts{
+    background:#fff; border:1px solid #ebeee9; border-radius:14px; padding:14px 16px; margin-bottom:18px;
+    display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end; box-shadow:var(--shadow);
+  }
+  .field{display:flex; flex-direction:column; gap:6px;}
+  .field label{font-size:.78rem; font-weight:700; color:#5b625a;}
+  .field input[type=text], .field select{
+    font-family:inherit; font-size:.92rem; padding:9px 11px; border:1.5px solid #dfe3da; border-radius:10px;
+    background:#fcfdfb; color:var(--ink); transition:.15s border-color,.15s box-shadow;
+  }
+  .field input:focus, .field select:focus, .card textarea:focus, .card input:focus{
+    outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow);
+  }
+  .field label.chk{
+    display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+    font-size:.92rem; font-weight:600; color:var(--ink);
+    padding:9px 11px; border:1.5px solid #dfe3da; border-radius:10px; background:#fcfdfb;
+  }
+  .field label.chk input{ width:17px; height:17px; accent-color:var(--accent); cursor:pointer; }
+  .field .btn{ padding:9px 13px; }
+  .bg-up{ display:flex; gap:8px; align-items:center; }
+  .bg-name{ font-size:.74rem; color:#8a9282; margin-top:2px; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  input[type=range]{ width:170px; accent-color:var(--accent); cursor:pointer; }
+
+  .cards{display:flex; flex-direction:column; gap:14px;}
+  .card{
+    background:#fff; border:1px solid #ebeee9; border-radius:14px; padding:14px 16px 16px;
+    box-shadow:var(--shadow); position:relative;
+  }
+  .card .head{display:flex; align-items:center; gap:8px; margin-bottom:10px;}
+  .card .num{
+    width:26px; height:26px; border-radius:50%; background:var(--accent-l); color:var(--accent-d);
+    display:grid; place-items:center; font-weight:800; font-size:.82rem;
+  }
+  .card .head .lab{font-weight:800; font-size:.9rem; color:#3f4838;}
+  .card .row{display:flex; flex-direction:column; gap:5px; margin-bottom:10px;}
+  .card .row:last-child{margin-bottom:0}
+  .card .row > span{font-size:.74rem; font-weight:700; color:#747c6e;}
+  .card input[type=text], .card textarea{
+    font-family:inherit; font-size:.92rem; padding:9px 11px; border:1.5px solid #dfe3da; border-radius:10px;
+    background:#fcfdfb; color:var(--ink); width:100%; resize:vertical;
+  }
+  .card textarea{min-height:74px; line-height:1.5;}
+  .card .ps-row{ display:flex; gap:8px; align-items:stretch; }
+  .card .ps-row input{ flex:1 1 auto; min-width:0; }
+  .card .dice{
+    flex:0 0 auto; width:46px; border:1.5px solid #dfe3da; border-radius:10px;
+    background:#fcfdfb; cursor:pointer; font-size:1.15rem; line-height:1;
+    display:grid; place-items:center; transition:.15s transform,.15s background,.15s border-color;
+  }
+  .card .dice:hover{ background:var(--accent-l); border-color:var(--accent); transform:translateY(-1px) rotate(-8deg); }
+  .card .dice:active{ transform:translateY(0) rotate(8deg); }
+
+  .hint{font-size:.82rem; color:#737b6d; margin:14px 2px 0; line-height:1.6;}
+  .hint b{color:var(--accent-d)}
+
+  .preview{position:sticky; top:78px;}
+  .preview .toptools{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap:10px;}
+  .preview .toptools .t{font-size:.9rem; font-weight:800; color:var(--accent-d); display:flex; align-items:center; gap:7px;}
+  .preview .toptools .note{font-size:.75rem; color:#8a9282;}
+  #deco{ position:absolute; inset:0; z-index:4; width:100%; height:100%; pointer-events:none; touch-action:none; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  #deco.active{ pointer-events:auto; cursor:crosshair; }
+  #deco.active.tool-move{ cursor:default; }
+  .deco-bar{ display:none; flex-wrap:wrap; gap:8px 10px; align-items:center; margin-bottom:12px; background:#fff; border:1px solid #ebeee9; border-radius:12px; padding:10px 12px; box-shadow:var(--shadow); }
+  .deco-bar.show{ display:flex; }
+  .deco-seg{ display:inline-flex; border:1.5px solid var(--accent-l); border-radius:10px; overflow:hidden; }
+  .deco-seg button{ border:none; background:#fff; padding:8px 11px; font-weight:700; font-size:.84rem; cursor:pointer; color:#5b625a; border-right:1px solid var(--accent-l); }
+  .deco-seg button:last-child{ border-right:none; }
+  .deco-seg button.on{ background:var(--accent); color:#fff; }
+  .deco-bar .mini{ font-size:.78rem; font-weight:800; color:#6a7363; }
+  .deco-bar input[type=color]{ width:34px; height:30px; border:1px solid #dfe3da; border-radius:8px; background:#fff; cursor:pointer; padding:2px; }
+  .deco-bar .gbtn{ border:1.5px solid #dfe3da; background:#fcfdfb; border-radius:9px; padding:7px 11px; font-weight:700; font-size:.82rem; cursor:pointer; color:#5b625a; }
+  .deco-bar .gbtn:hover{ background:var(--accent-xl); }
+  .btn.ghost[aria-pressed="true"]{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  .stickers{ display:flex; gap:4px; overflow-x:auto; flex:1 1 220px; padding:2px; }
+  .stickers button{ flex:0 0 auto; width:38px; height:34px; border:1px solid #eee; border-radius:8px; background:#fff; font-size:1.15rem; cursor:pointer; display:grid; place-items:center; line-height:1; }
+  .stickers button:hover{ background:var(--accent-xl); border-color:var(--accent-l); }
+  .stage{
+    width:100%; display:flex; justify-content:center; overflow:auto;
+    background:#eef0ea; border:1px solid #e2e6dc; border-radius:16px; padding:18px;
+    box-shadow:inset 0 1px 5px rgba(0,0,0,.04);
+  }
+  #frame{ position:relative; margin:0 auto; }
+
+  #sheet{
+    position:absolute; top:0; left:0;
+    width:794px; height:1123px;
+    background-color:var(--paper);
+    background-repeat:repeat; background-size:140px 140px;
+    transform-origin:top left;
+    box-shadow:0 12px 34px rgba(0,0,0,.16);
+    overflow:hidden;
+    display:flex; flex-direction:column;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  #userbg{
+    position:absolute; inset:0; z-index:0;
+    background-size:cover; background-position:center; background-repeat:no-repeat;
+    opacity:.5; display:none;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  #sheet.userbg-active .content{ text-shadow:0 1px 2px rgba(255,255,255,.7); }
+  #sheet .grid{
+    position:relative; z-index:1; flex:1 1 auto; min-height:0;
+    display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr 1fr;
+    gap:14px; padding:20px 20px 8px;
+  }
+  .cell{
+    position:relative;
+    border:1.5px solid rgba(90,90,90,.16); border-radius:14px;
+    background-color:rgba(255,255,255,.6);
+    background-size:cover; background-position:center; background-repeat:no-repeat;
+    padding:16px 14px; overflow:hidden;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .cell.has-bg::before{
+    content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
+    background:radial-gradient(ellipse at center,
+      rgba(255,255,255,.84) 0%, rgba(255,255,255,.64) 42%, rgba(255,255,255,.32) 100%);
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .content{
+    position:relative; z-index:1;
+    font-size:15px; height:100%;
+    display:flex; flex-direction:column; align-items:center; text-align:center; gap:8px;
+  }
+  .content .title{
+    font-family:var(--title-font); font-size:1.32em; color:var(--accent-d); line-height:1.1; letter-spacing:.5px;
+  }
+  .content .title .hh{color:var(--red);}
+  .content .date{ font-family:var(--body-font); font-size:.82em; color:#9aa08f; margin-top:-3px; }
+  .content .to{ font-family:var(--body-font); font-weight:700; font-size:1.18em; color:#31402a; }
+  .content .to .name{ border-bottom:2px dotted var(--accent); padding:0 3px;}
+  .content .to .ph, .content .body.ph{color:#b9beb1;}
+  .content .body{
+    font-family:var(--body-font); font-size:1.08em; color:#2b2b2b; line-height:1.5;
+    white-space:pre-line; flex:1 1 auto; display:flex; align-items:center; word-break:keep-all;
+  }
+  .content .ps{
+    font-family:var(--body-font); font-size:.92em; color:var(--accent-d); align-self:center;
+    background:var(--accent-l); padding:2px 10px; border-radius:20px;
+  }
+  .content .from{ font-family:var(--body-font); font-weight:700; font-size:1.0em; color:#3f4838; margin-top:2px; }
+
+  /* 배치별 미세 조정 (큰 편지는 왼쪽 정렬로 손편지 느낌) */
+  #grid[data-layout="one"] .cell, #grid[data-layout="two"] .cell{ padding:30px 32px; }
+  #grid[data-layout="one"] .content, #grid[data-layout="two"] .content{ align-items:flex-start; text-align:left; gap:14px; }
+  #grid[data-layout="one"] .content .title, #grid[data-layout="two"] .content .title{ align-self:center; }
+  #grid[data-layout="one"] .content .date, #grid[data-layout="two"] .content .date{ align-self:center; }
+  #grid[data-layout="one"] .content .body, #grid[data-layout="two"] .content .body{ align-items:flex-start; }
+  #grid[data-layout="one"] .content .ps, #grid[data-layout="two"] .content .ps{ align-self:flex-start; }
+  #grid[data-layout="one"] .content{ gap:18px; }
+
+  #sheet .credit{
+    position:relative; z-index:1; flex:0 0 auto;
+    text-align:center; padding:0 20px 14px;
+    font-family:'Pretendard', sans-serif; font-size:12.5px; font-weight:600; letter-spacing:.4px;
+    color:var(--accent-d);
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  #sheet .credit.hide{ display:none; }
+  #sheet .credit .cv{
+    display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent);
+    vertical-align:1px; margin:0 9px; opacity:.55;
+  }
+
+  @media print{
+    @page{ size:A4; margin:0; }
+    html,body{ background:#fff !important; }
+    header.bar{ display:none !important; }
+    .main{ display:block !important; max-width:none; padding:0 !important; }
+    .editor{ display:none !important; }
+    .preview{ position:static !important; }
+    .preview .toptools{ display:none !important; }
+    .stage{ background:#fff !important; border:none !important; padding:0 !important; box-shadow:none !important; overflow:visible !important; }
+    #frame{ width:auto !important; height:auto !important; margin:0 !important; }
+    #sheet{ position:static !important; transform:none !important; width:210mm !important; height:297mm !important; box-shadow:none !important; margin:0 !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <a class="hub-link" href="index.html" title="편지 만들기 허브로">←&nbsp;편지 허브</a>
+  <div class="brand">
+    <h1 id="brandTitle">편지 메이커</h1>
+    <span class="sub" id="brandSub">내용만 적으면 A4 한 장 완성</span>
+  </div>
+  <div class="spacer"></div>
+  <button class="btn ghost" id="btnRollAll">🎲 추신 전체 랜덤</button>
+  <button class="btn warn"  id="btnClear">🧹 전체 지우기</button>
+  <button class="btn primary" id="btnPrint">📄 인쇄 / PDF로 저장</button>
+</header>
+
+<div class="main">
+  <section class="editor">
+    <h2 id="editorHead">✏️ 편지 내용 입력</h2>
+
+    <div class="opts">
+      <div class="field">
+        <label for="optHeader">머리말 (제목)</label>
+        <input type="text" id="optHeader" placeholder="머리말">
+      </div>
+      <div class="field">
+        <label for="optPaper">용지 크기</label>
+        <select id="optPaper"></select>
+      </div>
+      <div class="field">
+        <label for="optLayout">편지 배치</label>
+        <select id="optLayout">
+          <option value="six">6칸 (기본)</option>
+          <option value="four">4칸</option>
+          <option value="two">2칸 (큰 편지)</option>
+          <option value="one">1장 (전체)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="optTemplate">편지지 템플릿</label>
+        <select id="optTemplate"></select>
+      </div>
+      <div class="field">
+        <label for="optFont">글씨체</label>
+        <select id="optFont">
+          <option value="round">둥근 손글씨 (개구)</option>
+          <option value="pen">정성 펜글씨 (나눔펜)</option>
+          <option value="dongle">동글동글 (동글)</option>
+          <option value="gothic">또박또박 (고운돋움)</option>
+          <option value="gamja">감자꽃 손글씨</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="optFrom">보내는 사람 (From.)</label>
+        <input type="text" id="optFrom" placeholder="선택 사항">
+      </div>
+      <div class="field">
+        <label for="optDate">날짜 (선택)</label>
+        <input type="text" id="optDate" placeholder="예) 2026.06.30">
+      </div>
+      <div class="field" style="flex:1 1 180px">
+        <label for="optMaker">만든 사람 (맨 아래)</label>
+        <input type="text" id="optMaker" placeholder="예) 해누리중학교 조승재">
+      </div>
+      <div class="field">
+        <label>카드 배경 그림</label>
+        <label class="chk"><input type="checkbox" id="optBg" checked> 배경 그림 사용</label>
+      </div>
+      <div class="field">
+        <label>배경 이미지 업로드</label>
+        <div class="bg-up">
+          <label class="btn ghost" for="optBgFile">🖼️ 이미지 선택</label>
+          <input type="file" id="optBgFile" accept="image/*" hidden>
+          <button class="btn warn" id="btnBgClear" type="button" hidden>제거</button>
+        </div>
+        <span class="bg-name" id="bgName"></span>
+      </div>
+      <div class="field">
+        <label for="optBgOpacity">배경 투명도 <span id="bgOpacityVal">50%</span></label>
+        <input type="range" id="optBgOpacity" min="10" max="100" step="5" value="50">
+      </div>
+      <div class="field">
+        <label>한 번에 채우기</label>
+        <button class="btn ghost" id="btnCopyAll" type="button">✍️ 1번 내용 전체 복사</button>
+      </div>
+    </div>
+
+    <div class="cards" id="cards"></div>
+
+    <p class="hint">
+      💡 <b>받는 사람 · 편지 내용</b>만 적으면 오른쪽 미리보기가 바로 바뀌어요. 추신·보내는 사람·날짜는 비워둬도 됩니다.<br>
+      📐 <b>편지 배치</b>로 6칸(쪽지)부터 1장(긴 손편지)까지 고를 수 있어요. <b>1번 내용 전체 복사</b>는 반 전체에 같은 글을 보낼 때 편해요.<br>
+      🎲 추신 칸 옆 <b>주사위</b>를 누르면 상황에 맞는 메시지가 랜덤으로 들어가요. 🎨 <b>템플릿</b>을 바꾸면 배경·색이 통째로 바뀝니다. 💾 자동 저장돼요.<br>
+      🖼️ <b>배경 이미지 업로드</b> 후 <b>배경 투명도</b>로 사진을 연하게 만들어 그 위에 편지를 쓸 수 있어요. (업로드한 사진은 저장되지 않아요)<br>
+      🖨️ <b>인쇄 / PDF로 저장</b> → 인쇄 창에서 프린터 대신 <b>"PDF로 저장"</b> 선택. 배경이 나오게 하려면 <b>'배경 그래픽'</b> 옵션을 켜주세요.
+    </p>
+  </section>
+
+  <section class="preview">
+    <div class="toptools">
+      <span class="t">👀 미리보기</span>
+      <button class="btn ghost" id="btnDeco" type="button" aria-pressed="false">🎨 꾸미기 모드</button>
+    </div>
+    <div class="deco-bar" id="decoBar">
+      <div class="deco-seg" id="decoTools">
+        <button type="button" data-tool="move" class="on">✋ 이동</button>
+        <button type="button" data-tool="pen">✏️ 펜</button>
+        <button type="button" data-tool="eraser">🧽 지우개</button>
+      </div>
+      <span class="mini">색</span>
+      <input type="color" id="decoColor" value="#e03e52">
+      <span class="mini">굵기</span>
+      <input type="range" id="decoWidth" min="2" max="30" step="1" value="5" style="width:90px">
+      <button class="gbtn" id="decoUndo" type="button">↩︎ 되돌리기</button>
+      <button class="gbtn" id="decoClear" type="button">🗑️ 꾸미기 지움</button>
+      <div class="stickers" id="stickers"></div>
+    </div>
+    <div class="stage" id="stage">
+      <div id="frame">
+        <div id="sheet">
+          <div id="userbg"></div>
+          <div class="grid" id="grid"></div>
+          <div class="credit" id="credit"></div>
+          <svg id="deco" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 794 1123" preserveAspectRatio="none"></svg>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ====================================================================
+   카테고리 설정 모음 — 새 카테고리는 여기에 추가
+   각 페이지는 아래 ACTIVE 한 줄만 다릅니다.
+   ==================================================================== */
+var Q_LUCK = [
+  "너의 노력이 빛을 발할 시간이야!","긴장은 잠깐, 실력은 영원히! 화이팅!","아는 문제부터 차근차근, 넌 할 수 있어!",
+  "지금까지 준비한 만큼만 하면 충분해!","실수해도 괜찮아, 끝까지 포기하지 마!","심호흡 한 번! 너의 페이스대로 가자.",
+  "어제의 너보다 한 걸음 더, 그거면 충분해.","결과보다 과정이 멋졌다는 걸 잊지 마.","떨리는 만큼 열심히 준비했다는 증거야!",
+  "마지막까지 검토! 1점까지 모두 너의 것.","오늘만큼은 네가 주인공이야, 화이팅!","할 수 있다는 믿음이 이미 절반의 성공!",
+  "선생님은 네가 정말 자랑스러워, 힘내!","처음부터 끝까지, 집중 또 집중!","행운을 빌어! 너라면 분명 잘 해낼 거야!",
+  "천재는 1%의 영감과 99%의 노력이다. - 에디슨","재능은 노력을 이기지 못한다.","노력은 결코 배신하지 않는다.",
+  "오늘 걷지 않으면 내일은 뛰어야 한다.","포기하지 않으면 실패란 없다.","성공은 매일 반복한 작은 노력의 합이다.",
+  "느려도 멈추지만 않으면 된다.","한 방울의 물이 모여 바위를 뚫는다.","노력하는 사람에게 불가능은 없다.",
+  "꾸준함이 결국 재능을 이긴다.","땀은 거짓말을 하지 않는다.","시작이 반이다.",
+  "넘어질 때마다 다시 일어서는 것이 진짜 용기다.","쉬운 길에는 보물이 없다.",
+  "배움에는 끝이 없다.","오늘 할 수 있는 일을 내일로 미루지 마라.","아는 것이 힘이다. - 베이컨",
+  "공부는 미래를 위한 가장 확실한 투자다.","지식은 누구도 빼앗을 수 없는 재산이다.","공부의 고통은 잠깐, 못 배운 고통은 평생이다.",
+  "오늘의 노력이 내일의 실력이 된다.","책 속에 길이 있다.","배운 것을 실천하는 것이 진짜 공부다.",
+  "묻는 것을 부끄러워하지 마라.","하루라도 책을 읽지 않으면 입안에 가시가 돋는다. - 안중근","어제 배운 한 줄이 오늘의 정답이 된다."
+];
+var Q_BIRTHDAY = [
+  "생일 축하해! 너의 하루가 케이크처럼 달콤하길 🎂","태어나줘서 고마워, 네가 있어 세상이 더 환해.","올 한 해도 웃을 일만 가득하길 바라!",
+  "네 꿈이 촛불처럼 환하게 빛나는 한 해가 되길.","생일을 진심으로 축하해, 늘 행복하자!","오늘은 온전히 너를 위한 날이야, 마음껏 행복해.",
+  "한 살 더 멋져진 너를 축하해!","좋은 사람들과 맛있는 거 잔뜩 먹는 하루 되길 🎉","네가 바라는 모든 소원이 이뤄지길 빌어.",
+  "작년보다 더 빛나는 한 해가 펼쳐지길!","생일 축하해! 너는 그 자체로 특별한 사람이야.","케이크 촛불 끄며 행복한 소원 빌어 🕯️",
+  "올해도 건강하고 즐거운 일만 가득하길.","너의 미소가 오래오래 이어지길 바라.","생일이라는 핑계로 오늘은 더 사랑받자!",
+  "새로운 한 살, 설레는 일들이 기다리고 있을 거야.","축하해! 네 곁에 좋은 사람들이 늘 함께하길.","오늘 같은 날엔 네가 주인공이야 🎈",
+  "한 뼘 더 자란 너를 응원하고 축하해.","생일 축하해, 너의 매일이 선물 같기를.","웃음 가득, 행복 가득한 생일 되길 바라!",
+  "올해 네게 좋은 일이 비처럼 쏟아지길.","네가 태어난 오늘이 참 고마운 날이야.","맛있는 케이크만큼 달콤한 하루 보내!",
+  "생일 축하해! 늘 지금처럼 반짝이길.","새 나이엔 더 많이 웃고 더 많이 행복하자.","너의 한 해가 풍선처럼 두둥실 즐겁길 🎈",
+  "오늘의 행복을 사진처럼 오래 간직하길.","생일 축하해, 너는 사랑받기 충분한 사람이야.","촛불 하나하나에 행복을 담아 축하해 🎂"
+];
+var Q_THANKS = [
+  "늘 곁에 있어줘서 고마워요.","당신의 따뜻한 마음을 잊지 않을게요.","덕분에 큰 힘이 되었어요, 감사합니다.",
+  "작은 친절이 제겐 큰 위로였어요.","고마운 마음을 어떻게 다 표현할까요.","당신이 있어 참 든든했어요.",
+  "베풀어 주신 도움 진심으로 감사해요.","당신의 배려 덕분에 잘 해낼 수 있었어요.","마음 깊이 감사드립니다.",
+  "함께해 주셔서 정말 고마웠어요.","당신의 응원이 큰 용기가 되었어요.","잊지 않고 챙겨줘서 고마워.",
+  "덕분에 따뜻한 하루였어요, 감사합니다.","보이지 않는 곳에서의 수고 감사드려요.","당신 같은 사람을 만나 행운이었어요.",
+  "고마워요, 그 마음 꼭 갚을게요.","늘 믿어줘서 고마워요.","당신의 한마디가 제겐 큰 선물이었어요.",
+  "도와주셔서 감사해요, 덕분에 해냈어요.","곁에서 응원해 줘서 고마워.","당신의 정성에 깊이 감사드립니다.",
+  "고마운 사람에게 고맙다 말할 수 있어 다행이에요.","그동안 보살펴 주셔서 감사했습니다.","당신 덕분에 웃을 수 있었어요.",
+  "진심 어린 도움, 오래 기억할게요.","감사한 마음 가득 담아 전해요.","당신과 함께한 시간이 참 감사했어요.",
+  "작은 것 하나까지 신경 써줘서 고마워.","늘 응원하고 지지해 줘서 감사해요.","당신은 제게 참 고마운 사람이에요."
+];
+var Q_ANNIV = [
+  "함께한 시간이 참 소중해요 🎉","오늘 이 날을 진심으로 축하해요.","지나온 날들도, 다가올 날들도 빛나길.",
+  "특별한 날을 함께할 수 있어 행복해요.","우리의 추억이 차곡차곡 쌓이길 바라.","기념일 축하해! 늘 지금처럼 함께하자.",
+  "오늘을 오래오래 기억하고 싶어요.","함께라서 더 의미 있는 하루예요.","지금까지처럼 앞으로도 곁에 있어줘.",
+  "소중한 날을 진심으로 축하합니다.","당신과 함께한 모든 순간이 선물이에요.","이 특별한 날에 행복만 가득하길.",
+  "변함없이 함께해 줘서 고마워요.","우리가 함께 만든 시간들을 축하해.","오늘도, 앞으로도 반짝이는 날들이길.",
+  "기념일을 맞아 마음을 전해요, 고마워요.","함께 걸어온 길이 참 자랑스러워요.","특별한 오늘, 더 특별하게 보내요 🎉",
+  "지나온 시간만큼 깊어진 마음을 전해요.","이 날이 오래도록 행복으로 남길 바라.","함께한 모든 날에 감사해요.",
+  "축하해요! 우리의 이야기는 계속될 거예요.","오늘 같은 날이 매년 행복하게 이어지길.","소중한 인연을 진심으로 축하합니다.",
+  "함께라서 더 빛나는 하루, 축하해요.","지금 이 순간을 마음에 담아둘게요.","변치 않는 마음으로 오늘을 축하해요.","우리가 함께한 시간에 박수를 보내요 👏"
+];
+
+var CONFIGS = {
+  luck: {
+    brand:"🍀 행운 편지 메이커", sub:"시험·발표·도전을 앞둔 사람에게 응원과 행운을",
+    storageKey:"lucky_letter_maker_v1", defaultHeader:"행운의 편지", heart:"♥", quotes:Q_LUCK,
+    templates:[
+      { id:"clover", name:"🍀 클로버 편지지", accent:"#3a9d23", motifs:["clover","sparkle","dot"], palette:["#7cc24f","#a7d98a","#ffd86b","#bfe3a6"] },
+      { id:"starry", name:"⭐ 별·반짝임",    accent:"#2f9e44", motifs:["star","sparkle","dot"],   palette:["#ffd166","#9bd1ff","#ffadc6","#b8f0c8"] },
+      { id:"cloverimg", name:"🖼️ 클로버 그림(내 이미지)", accent:"#3a9d23", motifs:["clover","dot"], palette:["#7cc24f","#bfe3a6"],
+        images:["bg1-clover.png","bg2-pencil.png","bg3-book.png","bg4-star.png","bg5-medal.png","bg6-heart.png"] },
+      { id:"simple", name:"🤍 심플(무늬 없음)", accent:"#3a9d23", motifs:[], palette:["#3a9d23"] }
+    ]
+  },
+  birthday: {
+    brand:"🎂 생일 축하 편지 메이커", sub:"생일을 맞은 사람에게 축하와 따뜻한 마음을",
+    storageKey:"birthday_letter_v1", defaultHeader:"생일 축하해", heart:"🎂", quotes:Q_BIRTHDAY,
+    templates:[
+      { id:"confetti", name:"🎊 색종이 파티", accent:"#ff5fa2", motifs:["dot","star","sparkle"],     palette:["#ff8fb3","#ffd166","#7cc4ff","#b693ff","#7ee0b8"] },
+      { id:"balloon",  name:"🎈 풍선·케이크", accent:"#ff5fa2", motifs:["balloon","cupcake","dot"],  palette:["#ff9eb7","#ffc34d","#8ec9ff","#c0a3ff"] },
+      { id:"gift",     name:"🎁 선물·하트",   accent:"#ff4f97", motifs:["gift","heart","sparkle"],   palette:["#ff8fb3","#ffb3c7","#ffd166","#9be0c4"] },
+      { id:"simple",   name:"🤍 심플(무늬 없음)", accent:"#ff5fa2", motifs:[], palette:["#ff5fa2"] }
+    ]
+  },
+  thanks: {
+    brand:"💌 감사 편지 메이커", sub:"고마운 사람에게 진심 어린 감사 인사를",
+    storageKey:"thanks_letter_v1", defaultHeader:"고마워요", heart:"💛", quotes:Q_THANKS,
+    templates:[
+      { id:"floral", name:"🌸 꽃·하트",   accent:"#e8920c", motifs:["flower","heart","sparkle"], palette:["#f2a65a","#ffc9a3","#e98aa6","#bcd98a"] },
+      { id:"ribbon", name:"🎀 리본·하트", accent:"#d97706", motifs:["ribbon","heart","dot"],     palette:["#e8920c","#f6b352","#e98aa6","#9bd1ff"] },
+      { id:"wild",   name:"🌼 들꽃",      accent:"#e8920c", motifs:["flower","dot","sparkle"],   palette:["#f4a261","#ffd29b","#e76f8c","#a8c98a"] },
+      { id:"simple", name:"🤍 심플(무늬 없음)", accent:"#e8920c", motifs:[], palette:["#e8920c"] }
+    ]
+  },
+  anniversary: {
+    brand:"🎗️ 기념일 편지 메이커", sub:"특별한 날과 기념일을 함께 축하하고 기억해요",
+    storageKey:"anniversary_letter_v1", defaultHeader:"기념일 축하해", heart:"🎉", quotes:Q_ANNIV,
+    templates:[
+      { id:"sparkle", name:"✨ 반짝이 축하", accent:"#7c5cdb", motifs:["sparkle","star","dot"],     palette:["#b89bff","#9bd1ff","#ffd166","#ff9ec4"] },
+      { id:"ribbon",  name:"🎀 리본·별",    accent:"#6d4fd0", motifs:["ribbon","star","sparkle"],  palette:["#a78bfa","#c4b5fd","#ffd166","#8ec9ff"] },
+      { id:"hearts",  name:"💜 하트·반짝임", accent:"#7c5cdb", motifs:["heart","sparkle","dot"],    palette:["#b69bff","#ff9ec4","#9bd1ff","#ffd29b"] },
+      { id:"simple",  name:"🤍 심플(무늬 없음)", accent:"#7c5cdb", motifs:[], palette:["#7c5cdb"] }
+    ]
+  }
+};
+
+/* 이 한 줄만 페이지마다 다릅니다 */
+var ACTIVE = "birthday";
+
+/* ====================================================================
+   엔진 (모든 카테고리 공통)
+   ==================================================================== */
+(function(){
+  "use strict";
+
+  var CONFIG = CONFIGS[ACTIVE] || CONFIGS.luck;
+  var KEY = CONFIG.storageKey;
+  var COUNT = 6;
+
+  var FONTS = {
+    round:  { title:"'Jua', sans-serif",            body:"'Gaegu', cursive" },
+    pen:    { title:"'Nanum Pen Script', cursive",  body:"'Nanum Pen Script', cursive" },
+    dongle: { title:"'Dongle', sans-serif",         body:"'Dongle', sans-serif" },
+    gothic: { title:"'Jua', sans-serif",            body:"'Gowun Dodum', sans-serif" },
+    gamja:  { title:"'Gamja Flower', cursive",      body:"'Gamja Flower', cursive" }
+  };
+
+  /* 배치(레이아웃) */
+  var LAYOUT = {
+    six:  { count:6, cols:2, rows:3, base:15, min:9,  gap:14, pad:"20px 20px 8px" },
+    four: { count:4, cols:2, rows:2, base:18, min:11, gap:16, pad:"22px 22px 10px" },
+    two:  { count:2, cols:1, rows:2, base:20, min:12, gap:16, pad:"24px 26px 12px" },
+    one:  { count:1, cols:1, rows:1, base:24, min:13, gap:0,  pad:"40px 46px 18px" }
+  };
+  var LAYOUT_BG = {
+    six:  { W:360, H:340, n:16 },
+    four: { W:420, H:400, n:20 },
+    two:  { W:720, H:330, n:22 },
+    one:  { W:600, H:760, n:34 }
+  };
+  function L(){ return LAYOUT[state.layout] || LAYOUT.six; }
+
+  /* ---------- 용지 크기 ---------- */
+  var MM2PX = 96/25.4;
+  var PAPERS = {
+    a4p:{name:"A4 세로 (210×297)", w:210, h:297},
+    a4l:{name:"A4 가로 (297×210)", w:297, h:210},
+    a3p:{name:"A3 세로 (297×420)", w:297, h:420},
+    a5p:{name:"A5 세로 (148×210)", w:148, h:210},
+    letter:{name:"레터 (216×279)", w:216, h:279},
+    post:{name:"엽서 (102×152)", w:102, h:152},
+    sq:{name:"정사각 (210×210)", w:210, h:210}
+  };
+  var PW=794, PH=1123;
+  function paper(){ return PAPERS[state.paper] || PAPERS.a4p; }
+  function isLandscape(){ return paper().w > paper().h; }
+  function gridDims(count){
+    var land=isLandscape();
+    if(count===1) return {cols:1, rows:1};
+    if(count===2) return land ? {cols:2, rows:1} : {cols:1, rows:2};
+    if(count===4) return {cols:2, rows:2};
+    return land ? {cols:3, rows:2} : {cols:2, rows:3};
+  }
+
+  /* ---------- 색상 도우미 (color-mix 의존 없이 JS로 계산) ---------- */
+  function hx(c){ c=String(c).replace("#",""); if(c.length===3)c=c.split("").map(function(x){return x+x;}).join(""); return [parseInt(c.slice(0,2),16),parseInt(c.slice(2,4),16),parseInt(c.slice(4,6),16)]; }
+  function toHex(a){ return "#"+a.map(function(v){ v=Math.max(0,Math.min(255,Math.round(v))); return (v<16?"0":"")+v.toString(16); }).join(""); }
+  function mix(c1,c2,t){ var a=hx(c1),b=hx(c2); return toHex([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t]); }
+
+  /* ---------- 배경 SVG 생성 ---------- */
+  var HEART="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z";
+  var STAR="12,1 14.65,8.36 22.46,8.6 16.28,13.39 18.47,20.9 12,16.5 5.53,20.9 7.72,13.39 1.54,8.6 9.36,8.36";
+  var SPARK="M0,-9 C1.3,-2.6 2.6,-1.3 9,0 C2.6,1.3 1.3,2.6 0,9 C-1.3,2.6 -2.6,1.3 -9,0 C-2.6,-1.3 -1.3,-2.6 0,-9 Z";
+
+  function motifInner(type, color){
+    switch(type){
+      case "clover":
+        return ["0","90","180","270"].map(function(d){
+          return '<path transform="rotate('+d+') scale(0.5) translate(-12,-21.35)" d="'+HEART+'"/>';
+        }).join("");
+      case "heart":   return '<path transform="translate(-12,-12)" d="'+HEART+'"/>';
+      case "star":    return '<polygon transform="translate(-12,-12)" points="'+STAR+'"/>';
+      case "sparkle": return '<path d="'+SPARK+'"/>';
+      case "dot":     return '<circle r="3.4"/>';
+      case "balloon": return '<ellipse cx="0" cy="-3" rx="6" ry="7.6"/><path d="M-2,4 L2,4 L0,7 Z"/><path d="M0,7 q3,5 -1,11" fill="none" stroke="'+color+'" stroke-width="1"/>';
+      case "cupcake": return '<path d="M-6,1 L6,1 L4,8 L-4,8 Z"/><path d="M-7,1 a7,6.5 0 0 1 14,0 Z"/><circle cx="0" cy="-6" r="2"/>';
+      case "gift":    return '<rect x="-7" y="-3" width="14" height="11" rx="1.5"/><path d="M0,-3 v11" stroke="#fff" stroke-width="1.6" opacity="0.5" fill="none"/><path d="M-7,1.5 h14" stroke="#fff" stroke-width="1.6" opacity="0.5" fill="none"/><circle cx="-2.6" cy="-5" r="2"/><circle cx="2.6" cy="-5" r="2"/>';
+      case "flower":  return [0,72,144,216,288].map(function(a){ var rad=a*Math.PI/180; return '<circle cx="'+(Math.cos(rad)*5).toFixed(1)+'" cy="'+(Math.sin(rad)*5).toFixed(1)+'" r="3.4"/>'; }).join("")+'<circle r="2.5" fill="#fff"/>';
+      case "ribbon":  return '<path d="M0,0 L-8,-4.5 L-8,4.5 Z"/><path d="M0,0 L8,-4.5 L8,4.5 Z"/><circle r="2.2"/>';
+      default:        return '<circle r="3"/>';
+    }
+  }
+  function motif(type,x,y,s,rot,color){
+    return '<g transform="translate('+x+','+y+') rotate('+rot+') scale('+s+')" fill="'+color+'">'+motifInner(type,color)+'</g>';
+  }
+  function hashStr(s){ var h=2166136261>>>0; for(var i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619)>>>0; } return h>>>0; }
+  function rng(seed){ var s=(seed>>>0)||1; return function(){ s=(Math.imul(s,1664525)+1013904223)>>>0; return s/4294967296; }; }
+
+  var bgCache = {};
+  function buildCardBg(tpl, i, layout){
+    if(tpl.images && tpl.images[i]) return "url('"+tpl.images[i]+"')";
+    var dim = LAYOUT_BG[layout] || LAYOUT_BG.six;
+    var W=dim.W, H=dim.H;
+    var key = tpl.id+"#"+layout+"#"+i;
+    if(bgCache[key]) return bgCache[key];
+    var url;
+    if(!tpl.motifs || !tpl.motifs.length){
+      var ac = tpl.accent || "#cccccc";
+      var s0 = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'">'+
+        '<rect width="'+W+'" height="'+H+'" fill="#fffdf6"/>'+
+        '<rect x="10" y="10" width="'+(W-20)+'" height="'+(H-20)+'" rx="16" fill="none" stroke="'+ac+'" stroke-opacity="0.22" stroke-width="2"/>'+
+        '</svg>';
+      url = 'url("data:image/svg+xml,'+encodeURIComponent(s0)+'")';
+      bgCache[key]=url; return url;
+    }
+    var seedBump = layout==="one"?500:(layout==="two"?300:(layout==="four"?150:7));
+    var r = rng(hashStr(tpl.id)+i*131+seedBump);
+    var parts = ['<rect width="'+W+'" height="'+H+'" fill="#fffdf6"/>'];
+    var placed=0, tries=0, N=dim.n;
+    while(placed<N && tries<N*16){
+      tries++;
+      var x=20+r()*(W-40), y=20+r()*(H-40);
+      var dx=(x-W/2)/(W*0.5), dy=(y-H/2)/(H*0.5);
+      if(dx*dx+dy*dy < 0.40 && r()<0.84) continue;     /* 가운데는 비워 둠 */
+      var type=tpl.motifs[Math.floor(r()*tpl.motifs.length)];
+      var color=tpl.palette[Math.floor(r()*tpl.palette.length)];
+      parts.push('<g opacity="'+(0.6+r()*0.3).toFixed(2)+'">'+motif(type,x.toFixed(1),y.toFixed(1),(0.85+r()*0.95).toFixed(2),Math.floor(r()*360),color)+'</g>');
+      placed++;
+    }
+    var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'">'+parts.join("")+'</svg>';
+    url='url("data:image/svg+xml,'+encodeURIComponent(svg)+'")';
+    bgCache[key]=url; return url;
+  }
+  var sheetCache = {};
+  function buildSheetPattern(tpl){
+    var key=tpl.id;
+    if(sheetCache[key]) return sheetCache[key];
+    if(!tpl.motifs || !tpl.motifs.length){
+      var s0='<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" viewBox="0 0 140 140"></svg>';
+      var u0='url("data:image/svg+xml,'+encodeURIComponent(s0)+'")'; sheetCache[key]=u0; return u0;
+    }
+    var T=140, r=rng(hashStr(tpl.id)+999);
+    var spots=[[34,38],[104,30],[28,104],[112,108],[70,72]];
+    var parts=[];
+    spots.forEach(function(p){
+      var type=tpl.motifs[Math.floor(r()*tpl.motifs.length)];
+      var color=tpl.palette[Math.floor(r()*tpl.palette.length)];
+      parts.push('<g opacity="0.16">'+motif(type,p[0],p[1],(0.7+r()*0.3).toFixed(2),Math.floor(r()*360),color)+'</g>');
+    });
+    var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+T+'" height="'+T+'" viewBox="0 0 '+T+' '+T+'">'+parts.join("")+'</svg>';
+    var url='url("data:image/svg+xml,'+encodeURIComponent(svg)+'")';
+    sheetCache[key]=url; return url;
+  }
+
+  /* ---------- 상태 ---------- */
+  function defaultTplId(){ return CONFIG.templates[0].id; }
+  function getTemplate(id){
+    for(var i=0;i<CONFIG.templates.length;i++){ if(CONFIG.templates[i].id===id) return CONFIG.templates[i]; }
+    return CONFIG.templates[0];
+  }
+  function currentTemplate(){ return getTemplate(state.templateId); }
+
+  function blank(){
+    return { header:CONFIG.defaultHeader, font:"round", maker:"해누리중학교 조승재",
+      useBg:true, templateId:defaultTplId(), layout:"six", from:"", date:"", bgOpacity:0.5,
+      paper:"a4p", deco:{items:[]},
+      letters: Array.from({length:COUNT}, function(){ return {to:"", body:"", ps:""}; }) };
+  }
+
+  var state = load();
+
+  function load(){
+    try{
+      var raw = localStorage.getItem(KEY);
+      if(!raw) return blank();
+      var s = JSON.parse(raw);
+      if(!s || !Array.isArray(s.letters)) return blank();
+      while(s.letters.length < COUNT) s.letters.push({to:"",body:"",ps:""});
+      s.letters = s.letters.slice(0, COUNT);
+      if(typeof s.header !== "string") s.header = CONFIG.defaultHeader;
+      if(typeof s.maker !== "string") s.maker = "해누리중학교 조승재";
+      if(typeof s.from !== "string") s.from = "";
+      if(typeof s.date !== "string") s.date = "";
+      if(typeof s.useBg !== "boolean") s.useBg = true;
+      if(!FONTS[s.font]) s.font = "round";
+      if(!LAYOUT[s.layout]) s.layout = "six";
+      if(typeof s.bgOpacity !== "number" || !isFinite(s.bgOpacity)) s.bgOpacity = 0.5;
+      s.bgOpacity = Math.max(0.1, Math.min(1, s.bgOpacity));
+      if(!PAPERS[s.paper]) s.paper = "a4p";
+      if(!s.deco || !Array.isArray(s.deco.items)) s.deco = {items:[]};
+      if(s.templateId == null || !getTemplate(s.templateId)) s.templateId = defaultTplId();
+      return s;
+    }catch(e){ return blank(); }
+  }
+  var saveTimer=null;
+  function save(){
+    if(saveTimer) clearTimeout(saveTimer);
+    saveTimer=setTimeout(function(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }, 250);
+  }
+
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+  /* ---------- 랜덤 추신 ---------- */
+  var POOL = CONFIG.quotes || [];
+  function pickQuote(exclude){
+    if(!POOL.length) return "";
+    if(POOL.length===1) return POOL[0];
+    var q,g=0; do{ q=POOL[Math.floor(Math.random()*POOL.length)]; g++; }while(q===exclude && g<25);
+    return q;
+  }
+  function setPS(i,q){
+    if(i<0||i>=state.letters.length) return;
+    state.letters[i].ps=q;
+    var inp=document.querySelector('#cards input[data-i="'+i+'"][data-k="ps"]');
+    if(inp) inp.value=q;
+  }
+  function rollOne(i){ setPS(i, pickQuote(state.letters[i]?state.letters[i].ps:"")); save(); renderCell(i); }
+  function rollAll(){
+    var pool=POOL.slice();
+    for(var a=pool.length-1;a>0;a--){ var b=Math.floor(Math.random()*(a+1)); var t=pool[a]; pool[a]=pool[b]; pool[b]=t; }
+    for(var i=0;i<COUNT;i++){ setPS(i, pool[i % pool.length]); }
+    save(); renderAll();
+  }
+
+  /* ---------- 테마 / 템플릿 / 배치 ---------- */
+  function applyTheme(accent){
+    var root=document.documentElement, rgb=hx(accent);
+    root.style.setProperty("--accent", accent);
+    root.style.setProperty("--accent-d", mix(accent,"#000000",0.30));
+    root.style.setProperty("--accent-l", mix(accent,"#ffffff",0.84));
+    root.style.setProperty("--accent-xl", mix(accent,"#ffffff",0.92));
+    root.style.setProperty("--accent-glow", "rgba("+rgb[0]+","+rgb[1]+","+rgb[2]+",0.16)");
+  }
+  function applyTemplate(){
+    var tpl=currentTemplate();
+    applyTheme(tpl.accent);
+    var sheet=document.getElementById("sheet");
+    if(sheet) sheet.style.backgroundImage = buildSheetPattern(tpl);
+    renderAll();
+  }
+  function applyLayoutGrid(){
+    var grid=document.getElementById("grid"); if(!grid) return;
+    var lay=L(); var gd=gridDims(lay.count);
+    grid.setAttribute("data-layout", state.layout);
+    grid.style.gridTemplateColumns = "repeat("+gd.cols+",1fr)";
+    grid.style.gridTemplateRows = "repeat("+gd.rows+",1fr)";
+    grid.style.gap = lay.gap+"px";
+    grid.style.padding = lay.pad;
+  }
+
+  var editorBound=false;
+  var userBgUrl=null;   /* 업로드한 배경 (메모리 전용, 저장 안 함) */
+
+  /* ---------- 에디터 ---------- */
+  function buildEditor(){
+    var box=document.getElementById("cards");
+    box.innerHTML="";
+    var n=L().count;
+    for(var i=0;i<n;i++){
+      var Lr=state.letters[i];
+      var card=document.createElement("div");
+      card.className="card";
+      card.innerHTML=
+        '<div class="head"><div class="num">'+(i+1)+'</div><div class="lab">'+(i+1)+'번 편지</div></div>'+
+        '<div class="row"><span>받는 사람 (To.)</span>'+
+          '<input type="text" data-i="'+i+'" data-k="to" placeholder="받는 사람 이름" value="'+esc(Lr.to)+'"></div>'+
+        '<div class="row"><span>편지 내용</span>'+
+          '<textarea data-i="'+i+'" data-k="body" placeholder="따뜻한 마음을 적어주세요. 줄바꿈도 그대로 반영돼요.">'+esc(Lr.body)+'</textarea></div>'+
+        '<div class="row"><span>추신 (PS.) · 선택</span>'+
+          '<div class="ps-row">'+
+            '<input type="text" data-i="'+i+'" data-k="ps" placeholder="직접 적거나 🎲로 메시지 넣기" value="'+esc(Lr.ps)+'">'+
+            '<button type="button" class="dice" data-roll="'+i+'" title="상황에 맞는 메시지 랜덤으로 넣기">🎲</button>'+
+          '</div>'+
+        '</div>';
+      box.appendChild(card);
+    }
+
+    var optHeader=document.getElementById("optHeader");
+    var optLayout=document.getElementById("optLayout");
+    var optPaper=document.getElementById("optPaper");
+    var optTemplate=document.getElementById("optTemplate");
+    var optFont=document.getElementById("optFont");
+    var optFrom=document.getElementById("optFrom");
+    var optDate=document.getElementById("optDate");
+    var optMaker=document.getElementById("optMaker");
+    var optBg=document.getElementById("optBg");
+    var btnCopyAll=document.getElementById("btnCopyAll");
+    var optBgFile=document.getElementById("optBgFile");
+    var btnBgClear=document.getElementById("btnBgClear");
+    var bgName=document.getElementById("bgName");
+    var optBgOpacity=document.getElementById("optBgOpacity");
+    var bgOpacityVal=document.getElementById("bgOpacityVal");
+
+    if(optTemplate){
+      optTemplate.innerHTML = CONFIG.templates.map(function(t){
+        return '<option value="'+t.id+'">'+esc(t.name)+'</option>';
+      }).join("");
+      optTemplate.value = state.templateId;
+    }
+    optHeader.value = state.header;
+    if(optLayout) optLayout.value = state.layout;
+    if(optPaper){ if(!optPaper.options.length){ optPaper.innerHTML = Object.keys(PAPERS).map(function(k){ return '<option value="'+k+'">'+esc(PAPERS[k].name)+'</option>'; }).join(""); } optPaper.value = state.paper; }
+    optFont.value   = state.font;
+    if(optFrom) optFrom.value = state.from || "";
+    if(optDate) optDate.value = state.date || "";
+    if(optMaker) optMaker.value = state.maker || "";
+    if(optBg) optBg.checked = state.useBg !== false;
+    if(optBgOpacity){ var pct=Math.round((state.bgOpacity||0.5)*100); optBgOpacity.value=String(pct); if(bgOpacityVal) bgOpacityVal.textContent=pct+"%"; }
+    if(btnBgClear) btnBgClear.hidden = !userBgUrl;
+    if(bgName) bgName.textContent = userBgUrl ? "이미지 적용됨" : "";
+
+    if(!editorBound){
+      editorBound=true;
+
+      box.addEventListener("input", function(e){
+        var t=e.target, i=t.getAttribute("data-i"), k=t.getAttribute("data-k");
+        if(i==null||k==null) return;
+        state.letters[+i][k]=t.value; save(); renderCell(+i);
+      });
+      box.addEventListener("click", function(e){
+        var d=e.target.closest ? e.target.closest(".dice") : null;
+        if(!d) return; rollOne(+d.getAttribute("data-roll"));
+      });
+
+      optHeader.addEventListener("input", function(){ state.header=optHeader.value; save(); renderAll(); });
+      if(optLayout) optLayout.addEventListener("change", function(){
+        state.layout = LAYOUT[optLayout.value] ? optLayout.value : "six"; save(); buildEditor(); renderAll();
+      });
+      if(optPaper) optPaper.addEventListener("change", function(){
+        state.paper = PAPERS[optPaper.value] ? optPaper.value : "a4p"; save(); applyPaper();
+      });
+      if(optTemplate) optTemplate.addEventListener("change", function(){
+        state.templateId = getTemplate(optTemplate.value).id; save(); applyTemplate();
+      });
+      optFont.addEventListener("change", function(){
+        state.font = FONTS[optFont.value] ? optFont.value : "round"; save(); applyFont(); renderAll();
+      });
+      if(optFrom) optFrom.addEventListener("input", function(){ state.from=optFrom.value; save(); renderAll(); });
+      if(optDate) optDate.addEventListener("input", function(){ state.date=optDate.value; save(); renderAll(); });
+      if(optMaker) optMaker.addEventListener("input", function(){ state.maker=optMaker.value; save(); renderCredit(); fitAll(); });
+      if(optBg) optBg.addEventListener("change", function(){ state.useBg=optBg.checked; save(); renderAll(); });
+      if(btnCopyAll) btnCopyAll.addEventListener("click", copyAll);
+
+      if(optBgFile) optBgFile.addEventListener("change", function(){
+        var f = optBgFile.files && optBgFile.files[0];
+        if(!f) return;
+        var reader = new FileReader();
+        reader.onload = function(ev){
+          userBgUrl = ev.target.result;
+          if(bgName) bgName.textContent = "이미지 적용됨";
+          if(btnBgClear) btnBgClear.hidden = false;
+          if(!state.useBg){ state.useBg = true; if(optBg) optBg.checked = true; save(); }
+          applyUserBg(); renderAll();
+        };
+        reader.readAsDataURL(f);
+        try{ optBgFile.value=""; }catch(e){}
+      });
+      if(btnBgClear) btnBgClear.addEventListener("click", function(){
+        userBgUrl = null;
+        if(bgName) bgName.textContent = "";
+        btnBgClear.hidden = true;
+        applyUserBg(); renderAll();
+      });
+      if(optBgOpacity) optBgOpacity.addEventListener("input", function(){
+        var p = parseInt(optBgOpacity.value,10); if(!isFinite(p)) p=50;
+        state.bgOpacity = Math.max(0.1, Math.min(1, p/100));
+        if(bgOpacityVal) bgOpacityVal.textContent = p+"%";
+        save(); applyUserBg();
+      });
+    }
+  }
+
+  function copyAll(){
+    if(window.confirm && !window.confirm("1번 편지의 '내용'과 '추신'을 전체 편지에 복사할까요? (받는 사람 이름은 그대로 둡니다)")) return;
+    var src=state.letters[0];
+    for(var i=0;i<state.letters.length;i++){ state.letters[i].body=src.body; state.letters[i].ps=src.ps; }
+    save(); buildEditor(); renderAll();
+  }
+
+  /* ---------- 미리보기 ---------- */
+  function applyFont(){
+    var f=FONTS[state.font]||FONTS.round, sheet=document.getElementById("sheet");
+    sheet.style.setProperty("--title-font", f.title);
+    sheet.style.setProperty("--body-font", f.body);
+  }
+
+  function cellHTML(Lr){
+    var header = esc(state.header || CONFIG.defaultHeader);
+    var heart  = esc(CONFIG.heart || "♥");
+    var name   = (Lr.to && Lr.to.trim()) ? '<span class="name">'+esc(Lr.to)+'</span>' : '<span class="ph">○○</span>';
+    var bodyEmpty = !(Lr.body && Lr.body.trim());
+    var body   = '<div class="body'+(bodyEmpty?' ph':'')+'">'+esc(bodyEmpty ? "이곳에 마음을 적어주세요 :)" : Lr.body)+'</div>';
+    var ps     = (Lr.ps && Lr.ps.trim()) ? '<div class="ps">PS. '+esc(Lr.ps)+'</div>' : '';
+    var date   = (state.date && state.date.trim()) ? '<div class="date">'+esc(state.date)+'</div>' : '';
+    var from   = (state.from && state.from.trim()) ? '<div class="from">From. '+esc(state.from)+'</div>' : '';
+    return '<div class="content">'+
+             '<div class="title">'+header+' <span class="hh">'+heart+'</span></div>'+ date +
+             '<div class="to">To. '+name+'</div>'+ body + ps + from +
+           '</div>';
+  }
+
+  function applyUserBg(){
+    var layer=document.getElementById("userbg"), sheet=document.getElementById("sheet");
+    if(!layer) return;
+    if(state.useBg && userBgUrl){
+      layer.style.backgroundImage="url('"+userBgUrl+"')";
+      layer.style.opacity=String(state.bgOpacity);
+      layer.style.display="block";
+      if(sheet) sheet.classList.add("userbg-active");
+    }else{
+      layer.style.display="none"; layer.style.backgroundImage="";
+      if(sheet) sheet.classList.remove("userbg-active");
+    }
+  }
+  function applyCellBg(cell,i){
+    if(!state.useBg){ cell.classList.remove("has-bg"); cell.style.backgroundImage=""; cell.style.backgroundColor=""; return; }
+    if(userBgUrl){ cell.classList.remove("has-bg"); cell.style.backgroundImage=""; cell.style.backgroundColor="transparent"; return; }
+    cell.classList.add("has-bg"); cell.style.backgroundColor=""; cell.style.backgroundImage = buildCardBg(currentTemplate(), i, state.layout);
+  }
+  function renderAll(){
+    var grid=document.getElementById("grid");
+    applyLayoutGrid();
+    grid.innerHTML="";
+    var n=L().count;
+    for(var i=0;i<n;i++){
+      var cell=document.createElement("div");
+      cell.className="cell";
+      applyCellBg(cell,i);
+      cell.innerHTML=cellHTML(state.letters[i]);
+      grid.appendChild(cell);
+    }
+    applyUserBg();
+    renderCredit(); fitAll();
+  }
+  function renderCell(i){
+    if(i>=L().count) return;
+    var grid=document.getElementById("grid"), cell=grid.children[i];
+    if(!cell) return renderAll();
+    applyCellBg(cell,i);
+    cell.innerHTML=cellHTML(state.letters[i]);
+    fit(cell);
+  }
+  function renderCredit(){
+    var el=document.getElementById("credit");
+    if(!el) return;
+    var m=(state.maker||"").trim();
+    if(!m){ el.className="credit hide"; el.innerHTML=""; return; }
+    el.className="credit";
+    el.innerHTML='<span class="cv"></span>제작 · '+esc(m)+'<span class="cv"></span>';
+  }
+
+  function fit(cell){
+    var lay=L(), c=cell.querySelector(".content");
+    if(!c) return;
+    var ps=PW/794;
+    var size=lay.base*ps, minS=lay.min*ps;
+    c.style.fontSize=size.toFixed(2)+"px";
+    var g=0;
+    while(cell.scrollHeight>cell.clientHeight && size>minS && g<220){ size-=0.5; c.style.fontSize=size.toFixed(2)+"px"; g++; }
+  }
+  function fitAll(){ var grid=document.getElementById("grid"); for(var i=0;i<grid.children.length;i++) fit(grid.children[i]); }
+
+  /* ---------- 화면 맞춤 축소 ---------- */
+  function updateScale(){
+    var stage=document.getElementById("stage"), frame=document.getElementById("frame"), sheet=document.getElementById("sheet");
+    if(!stage||!frame||!sheet) return;
+    var s=Math.min(1,(stage.clientWidth-36)/PW);
+    if(!isFinite(s)||s<=0) s=1;
+    sheet.style.transform="scale("+s+")";
+    frame.style.width=(PW*s)+"px"; frame.style.height=(PH*s)+"px";
+  }
+
+  /* ---------- 버튼 ---------- */
+  function bindButtons(){
+    var p=document.getElementById("btnPrint");
+    if(p) p.addEventListener("click", function(){ if(typeof window.print==="function") window.print(); });
+    var r=document.getElementById("btnRollAll");
+    if(r) r.addEventListener("click", function(){ rollAll(); });
+    var c=document.getElementById("btnClear");
+    if(c) c.addEventListener("click", function(){
+      if(window.confirm && !window.confirm("작성한 편지 내용을 모두 지울까요? (머리말·배치·글씨체·템플릿·제작자는 유지돼요)")) return;
+      state.letters = blank().letters; save(); buildEditor(); renderAll();
+    });
+  }
+
+  /* ====================================================================
+     용지 크기 적용 + 편지지 꾸미기 (그리기 / 스티커)
+     ==================================================================== */
+  var printStyleEl=null;
+  function updatePrintStyle(){
+    if(!printStyleEl){ printStyleEl=document.createElement("style"); printStyleEl.id="printStyleEl"; document.head.appendChild(printStyleEl); }
+    var p=paper();
+    printStyleEl.textContent="@media print{ @page{ size:"+p.w+"mm "+p.h+"mm; margin:0; } #sheet{ width:"+p.w+"mm !important; height:"+p.h+"mm !important; } }";
+  }
+  function applyPaper(){
+    var p=paper();
+    PW=Math.round(p.w*MM2PX); PH=Math.round(p.h*MM2PX);
+    var sheet=document.getElementById("sheet");
+    if(sheet){ sheet.style.width=PW+"px"; sheet.style.height=PH+"px"; }
+    var deco=document.getElementById("deco");
+    if(deco){ deco.setAttribute("viewBox","0 0 "+PW+" "+PH); }
+    updatePrintStyle();
+    renderAll();
+    renderDeco();
+    updateScale();
+  }
+
+  /* ---- SVG 도우미 ---- */
+  var SVGNS="http://www.w3.org/2000/svg";
+  function svgEl(tag,attrs,text){
+    var e=document.createElementNS(SVGNS,tag);
+    if(attrs){ for(var k in attrs){ if(attrs[k]!=null) e.setAttribute(k,attrs[k]); } }
+    if(text!=null) e.textContent=text;
+    return e;
+  }
+  function clearNode(n){ while(n && n.firstChild) n.removeChild(n.firstChild); }
+  function appendShape(g,shape,color){
+    if(shape==="heart"){ g.appendChild(svgEl("path",{d:HEART,fill:color,transform:"translate(-12,-12)"})); }
+    else if(shape==="star"){ g.appendChild(svgEl("polygon",{points:STAR,fill:color,transform:"translate(-12,-12)"})); }
+    else if(shape==="sparkle"){ g.appendChild(svgEl("path",{d:SPARK,fill:color})); }
+    else if(shape==="clover"){ ["0","90","180","270"].forEach(function(d){ g.appendChild(svgEl("path",{d:HEART,fill:color,transform:"rotate("+d+") scale(0.5) translate(-12,-21.35)"})); }); }
+    else if(shape==="flower"){ [0,72,144,216,288].forEach(function(a){ var rad=a*Math.PI/180; g.appendChild(svgEl("circle",{cx:(Math.cos(rad)*5).toFixed(1),cy:(Math.sin(rad)*5).toFixed(1),r:3.4,fill:color})); }); g.appendChild(svgEl("circle",{r:2.5,fill:"#fff"})); }
+    else { g.appendChild(svgEl("circle",{r:6,fill:color})); }
+  }
+
+  /* ---- 꾸미기 상태 ---- */
+  var DECO_EMOJI=["⭐","🌟","✨","❤️","🧡","💛","💚","💙","💜","🌸","🌼","🌺","🌷","🍀","🎀","🎈","🎉","🎊","🎁","🌈","☀️","🌙","🐰","🐻","🐱","🐶","😊","🥳","👍","🙏","💌","🍰"];
+  var DECO_SHAPES=[{shape:"heart",color:"#ff5fa2"},{shape:"star",color:"#ffc233"},{shape:"clover",color:"#3a9d23"},{shape:"flower",color:"#e98aa6"},{shape:"sparkle",color:"#7c5cdb"}];
+  var decoMode=false, decoTool="move", decoColor="#e03e52", decoWidth=5, selIdx=-1;
+  var drawing=false, curPts=null, tempPath=null, dragMode=null;
+  function aspect(){ return PW/PH; }
+  function clamp01(v){ return v<0?0:(v>1?1:v); }
+  function decoItems(){ if(!state.deco||!Array.isArray(state.deco.items)) state.deco={items:[]}; return state.deco.items; }
+
+  function renderDeco(){
+    var deco=document.getElementById("deco"); if(!deco) return;
+    clearNode(deco);
+    var W=PW,H=PH, items=decoItems();
+    items.forEach(function(it){
+      if(it.kind==="stroke"){
+        if(!it.pts||it.pts.length<1) return;
+        var d="M "+(it.pts[0][0]*W).toFixed(1)+" "+(it.pts[0][1]*H).toFixed(1);
+        for(var k=1;k<it.pts.length;k++){ d+=" L "+(it.pts[k][0]*W).toFixed(1)+" "+(it.pts[k][1]*H).toFixed(1); }
+        deco.appendChild(svgEl("path",{d:d,fill:"none",stroke:it.color,"stroke-width":(it.w*W).toFixed(2),"stroke-linecap":"round","stroke-linejoin":"round"}));
+      } else if(it.kind==="sticker"){
+        var cx=it.x*W, cy=it.y*H;
+        if(it.shape){
+          var sc=(it.size*W)/20;
+          var g=svgEl("g",{transform:"translate("+cx.toFixed(1)+","+cy.toFixed(1)+") scale("+sc.toFixed(3)+")"});
+          appendShape(g,it.shape,it.color||"#333"); deco.appendChild(g);
+        } else {
+          deco.appendChild(svgEl("text",{x:cx.toFixed(1),y:cy.toFixed(1),"font-size":(it.size*W).toFixed(1),"text-anchor":"middle","dominant-baseline":"central"}, it.char||"⭐"));
+        }
+      }
+    });
+    if(decoMode && selIdx>=0 && items[selIdx] && items[selIdx].kind==="sticker"){
+      var s=items[selIdx], cx=s.x*W, cy=s.y*H, half=s.size*W*0.62, u=W/794, hr=Math.max(11,14*u);
+      deco.appendChild(svgEl("rect",{x:(cx-half).toFixed(1),y:(cy-half).toFixed(1),width:(half*2).toFixed(1),height:(half*2).toFixed(1),fill:"none",stroke:"#3a78e0","stroke-width":(2*u).toFixed(2),"stroke-dasharray":(7*u).toFixed(1)+" "+(4*u).toFixed(1)}));
+      var gd=svgEl("g",{}); gd.appendChild(svgEl("circle",{cx:(cx+half).toFixed(1),cy:(cy-half).toFixed(1),r:hr.toFixed(1),fill:"#e03e52"})); gd.appendChild(svgEl("text",{x:(cx+half).toFixed(1),y:(cy-half).toFixed(1),"font-size":(hr*1.25).toFixed(1),fill:"#fff","text-anchor":"middle","dominant-baseline":"central"},"×")); deco.appendChild(gd);
+      var gr=svgEl("g",{}); gr.appendChild(svgEl("circle",{cx:(cx+half).toFixed(1),cy:(cy+half).toFixed(1),r:hr.toFixed(1),fill:"#3a78e0"})); gr.appendChild(svgEl("text",{x:(cx+half).toFixed(1),y:(cy+half).toFixed(1),"font-size":(hr*1.05).toFixed(1),fill:"#fff","text-anchor":"middle","dominant-baseline":"central"},"⤢")); deco.appendChild(gr);
+    }
+  }
+
+  function decoPt(e){
+    var deco=document.getElementById("deco"), r=deco.getBoundingClientRect();
+    var cx=(e.clientX!=null?e.clientX:(e.touches&&e.touches[0]?e.touches[0].clientX:0));
+    var cy=(e.clientY!=null?e.clientY:(e.touches&&e.touches[0]?e.touches[0].clientY:0));
+    if(!r.width||!r.height) return {x:0,y:0};
+    return { x:(cx-r.left)/r.width, y:(cy-r.top)/r.height };
+  }
+  function stickerHitTop(p){
+    var items=decoItems();
+    for(var i=items.length-1;i>=0;i--){ var it=items[i]; if(it.kind!=="sticker") continue;
+      var hx=it.size*0.62, hy=it.size*0.62*aspect();
+      if(Math.abs(p.x-it.x)<hx && Math.abs(p.y-it.y)<hy) return i;
+    }
+    return -1;
+  }
+  function handleHit(it,p){
+    var W=PW,H=PH, cx=it.x*W, cy=it.y*H, half=it.size*W*0.62, px=p.x*W, py=p.y*H, hr=Math.max(13,17*(W/794));
+    function near(hx,hy){ var dx=px-hx, dy=py-hy; return (dx*dx+dy*dy) < hr*hr; }
+    if(near(cx+half, cy-half)) return "del";
+    if(near(cx+half, cy+half)) return "rs";
+    return null;
+  }
+  function segDist(p,a,b){
+    var W=PW,H=PH, px=p.x*W,py=p.y*H, ax=a[0]*W,ay=a[1]*H, bx=b[0]*W,by=b[1]*H, dx=bx-ax, dy=by-ay, l2=dx*dx+dy*dy;
+    var t=l2?((px-ax)*dx+(py-ay)*dy)/l2:0; t=t<0?0:(t>1?1:t);
+    return Math.hypot(px-(ax+t*dx), py-(ay+t*dy));
+  }
+  function eraseAt(p){
+    var items=decoItems(), thr=Math.max(10,14*(PW/794));
+    for(var i=items.length-1;i>=0;i--){ var it=items[i];
+      if(it.kind==="sticker"){
+        var hx=it.size*0.62, hy=it.size*0.62*aspect();
+        if(Math.abs(p.x-it.x)<hx && Math.abs(p.y-it.y)<hy){ items.splice(i,1); if(selIdx===i)selIdx=-1; save(); renderDeco(); return; }
+      } else if(it.kind==="stroke" && it.pts){
+        var hit=false;
+        if(it.pts.length===1){ if(Math.hypot((p.x-it.pts[0][0])*PW,(p.y-it.pts[0][1])*PH)<thr) hit=true; }
+        for(var k=1;k<it.pts.length && !hit;k++){ if(segDist(p,it.pts[k-1],it.pts[k]) < thr + (it.w*PW)/2) hit=true; }
+        if(hit){ items.splice(i,1); save(); renderDeco(); return; }
+      }
+    }
+  }
+
+  function onDown(e){
+    if(!decoMode) return;
+    if(e.cancelable) e.preventDefault();
+    var deco=document.getElementById("deco"), p=decoPt(e);
+    try{ if(deco.setPointerCapture && e.pointerId!=null) deco.setPointerCapture(e.pointerId); }catch(_){}
+    if(decoTool==="pen"){
+      drawing=true; curPts=[[p.x,p.y]];
+      tempPath=svgEl("path",{fill:"none",stroke:decoColor,"stroke-width":decoWidth,"stroke-linecap":"round","stroke-linejoin":"round",d:"M "+(p.x*PW).toFixed(1)+" "+(p.y*PH).toFixed(1)});
+      deco.appendChild(tempPath); selIdx=-1;
+    } else if(decoTool==="eraser"){
+      drawing=true; eraseAt(p);
+    } else {
+      var items=decoItems();
+      if(selIdx>=0 && items[selIdx]){ var h=handleHit(items[selIdx],p); if(h==="del"){ items.splice(selIdx,1); selIdx=-1; save(); renderDeco(); return; } if(h==="rs"){ dragMode="rs"; return; } }
+      var hit=stickerHitTop(p);
+      if(hit>=0){ selIdx=hit; dragMode="move"; renderDeco(); } else { selIdx=-1; renderDeco(); }
+    }
+  }
+  function onMove(e){
+    if(!decoMode) return;
+    var p=decoPt(e);
+    if(drawing && decoTool==="pen" && tempPath){
+      curPts.push([p.x,p.y]);
+      tempPath.setAttribute("d", tempPath.getAttribute("d")+" L "+(p.x*PW).toFixed(1)+" "+(p.y*PH).toFixed(1));
+    } else if(drawing && decoTool==="eraser"){ eraseAt(p); }
+    else if(dragMode==="move" && selIdx>=0){ var it=decoItems()[selIdx]; it.x=clamp01(p.x); it.y=clamp01(p.y); renderDeco(); }
+    else if(dragMode==="rs" && selIdx>=0){ var it2=decoItems()[selIdx]; it2.size=Math.max(0.02,Math.min(0.6,(p.x-it2.x)/0.62)); renderDeco(); }
+  }
+  function onUp(){
+    if(!decoMode) return;
+    if(drawing && decoTool==="pen" && curPts){
+      if(curPts.length>=1) decoItems().push({kind:"stroke",color:decoColor,w:decoWidth/PW,pts:curPts});
+      if(tempPath && tempPath.parentNode) tempPath.parentNode.removeChild(tempPath);
+      tempPath=null; curPts=null; save(); renderDeco();
+    }
+    if(drawing && decoTool==="eraser") save();
+    drawing=false; dragMode=null;
+  }
+
+  function addSticker(obj){
+    var it=Object.assign({kind:"sticker", x:0.5, y:0.5, size:0.1}, obj);
+    decoItems().push(it); selIdx=decoItems().length-1;
+    if(!decoMode) setDecoMode(true);
+    setTool("move"); save(); renderDeco();
+  }
+  function undoDeco(){ decoItems().pop(); selIdx=-1; save(); renderDeco(); }
+  function clearDeco(){ state.deco={items:[]}; selIdx=-1; save(); renderDeco(); }
+
+  function setTool(t){
+    decoTool=t; if(t!=="move") selIdx=-1;
+    var seg=document.getElementById("decoTools");
+    if(seg) Array.prototype.forEach.call(seg.querySelectorAll("button"), function(b){ b.classList.toggle("on", b.getAttribute("data-tool")===t); });
+    var deco=document.getElementById("deco"); if(deco) deco.classList.toggle("tool-move", t==="move");
+    renderDeco();
+  }
+  function setDecoMode(on){
+    decoMode=on;
+    var deco=document.getElementById("deco"), bar=document.getElementById("decoBar"), btn=document.getElementById("btnDeco");
+    if(deco) deco.classList.toggle("active", on);
+    if(bar) bar.classList.toggle("show", on);
+    if(btn){ btn.setAttribute("aria-pressed", on?"true":"false"); btn.textContent = on?"🎨 꾸미기 끄기":"🎨 꾸미기 모드"; }
+    if(!on) selIdx=-1;
+    renderDeco();
+  }
+
+  function buildStickerPalette(){
+    var box=document.getElementById("stickers"); if(!box || box.childElementCount) return;
+    DECO_SHAPES.forEach(function(s){
+      var b=document.createElement("button"); b.type="button"; b.title="도형 스티커";
+      var svg=document.createElementNS(SVGNS,"svg"); svg.setAttribute("width","22"); svg.setAttribute("height","22"); svg.setAttribute("viewBox","-12 -12 24 24");
+      var g=document.createElementNS(SVGNS,"g"); appendShape(g,s.shape,s.color); svg.appendChild(g); b.appendChild(svg);
+      b.addEventListener("click", function(){ addSticker({shape:s.shape, color:s.color}); });
+      box.appendChild(b);
+    });
+    DECO_EMOJI.forEach(function(ch){
+      var b=document.createElement("button"); b.type="button"; b.textContent=ch; b.title="스티커";
+      b.addEventListener("click", function(){ addSticker({char:ch}); });
+      box.appendChild(b);
+    });
+  }
+  function setupDeco(){
+    buildStickerPalette();
+    var btn=document.getElementById("btnDeco"); if(btn) btn.addEventListener("click", function(){ setDecoMode(!decoMode); });
+    var seg=document.getElementById("decoTools"); if(seg) seg.addEventListener("click", function(e){ var b=e.target.closest?e.target.closest("button[data-tool]"):null; if(b) setTool(b.getAttribute("data-tool")); });
+    var col=document.getElementById("decoColor"); if(col) col.addEventListener("input", function(){ decoColor=col.value; });
+    var wid=document.getElementById("decoWidth"); if(wid) wid.addEventListener("input", function(){ var v=parseInt(wid.value,10); decoWidth=isFinite(v)?v:5; });
+    var u=document.getElementById("decoUndo"); if(u) u.addEventListener("click", undoDeco);
+    var c=document.getElementById("decoClear"); if(c) c.addEventListener("click", function(){ if(!decoItems().length) return; if(window.confirm && !window.confirm("꾸미기(그림·스티커)를 모두 지울까요?")) return; clearDeco(); });
+    var deco=document.getElementById("deco");
+    if(deco){
+      deco.addEventListener("pointerdown", onDown);
+      deco.addEventListener("pointermove", onMove);
+      window.addEventListener("pointerup", onUp);
+      deco.addEventListener("touchstart", onDown, {passive:false});
+      deco.addEventListener("touchmove", onMove, {passive:false});
+      window.addEventListener("touchend", onUp);
+    }
+  }
+
+  /* ---------- 시작 ---------- */
+  function init(){
+    document.title = CONFIG.brand;
+    var bt=document.getElementById("brandTitle"); if(bt) bt.textContent=CONFIG.brand;
+    var bs=document.getElementById("brandSub");   if(bs) bs.textContent=CONFIG.sub;
+
+    buildEditor();
+    applyFont();
+    setupDeco();
+    applyPaper();      /* 용지 px + 그리드 + 인쇄크기 + renderAll/renderDeco */
+    applyTemplate();   /* 테마색 + 시트패턴 + renderAll */
+    bindButtons();
+    updateScale();
+
+    if(typeof window.ResizeObserver==="function"){ new ResizeObserver(updateScale).observe(document.getElementById("stage")); }
+    window.addEventListener("resize", updateScale);
+    if(document.fonts && document.fonts.ready && document.fonts.ready.then){ document.fonts.ready.then(function(){ fitAll(); updateScale(); }); }
+    window.addEventListener("beforeprint", function(){ var s=document.getElementById("sheet"); if(s) s.style.transform="none"; selIdx=-1; renderDeco(); fitAll(); });
+    window.addEventListener("afterprint", function(){ updateScale(); });
+  }
+
+  if(document.readyState==="loading"){ document.addEventListener("DOMContentLoaded", init); } else { init(); }
+})();
+</script>
+</body>
+</html>
