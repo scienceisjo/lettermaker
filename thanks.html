@@ -489,7 +489,7 @@ var CONFIGS = {
 };
 
 /* 이 한 줄만 페이지마다 다릅니다 */
-var ACTIVE = "birthday";
+var ACTIVE = "thanks";
 
 /* ====================================================================
    엔진 (모든 카테고리 공통)
@@ -689,7 +689,10 @@ var ACTIVE = "birthday";
   }
 
   /* ---------- 상태 ---------- */
-  function defaultTplId(){ return CONFIG.templates[0].id; }
+  function defaultTplId(){
+    for(var i=0;i<CONFIG.templates.length;i++){ if(CONFIG.templates[i].images) return CONFIG.templates[i].id; }
+    return CONFIG.templates[0].id;
+  }
   function getTemplate(id){
     for(var i=0;i<CONFIG.templates.length;i++){ if(CONFIG.templates[i].id===id) return CONFIG.templates[i]; }
     return CONFIG.templates[0];
@@ -727,6 +730,11 @@ var ACTIVE = "birthday";
       if(!EXPORT_Q[s.exportQuality]) s.exportQuality = "standard";
       if(typeof s.sheetBg !== "boolean") s.sheetBg = false;
       if(s.templateId == null || !getTemplate(s.templateId)) s.templateId = defaultTplId();
+      /* 1회 전환: 예전 기본(SVG 클로버)으로 저장돼 있던 lucky 사용자를 '내 이미지'로 (편지 내용은 보존) */
+      if(CONFIG.storageKey==="lucky_letter_maker_v1" && !s._imgDefault){
+        if(s.templateId==="clover"){ var _id=defaultTplId(); var _t=getTemplate(_id); if(_t && _t.images) s.templateId=_id; }
+        s._imgDefault=true;
+      }
       return s;
     }catch(e){ return blank(); }
   }
