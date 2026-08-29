@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎡 학급 롤링페이퍼</title>
+
+<link rel="stylesheet" as="style" crossorigin
+  href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gaegu:wght@400;700&family=Nanum+Pen+Script&family=Dongle:wght@400;700&family=Gowun+Dodum&family=Gamja+Flower&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --accent:#7c5cdb; --accent-d:#5b3fb0; --accent-l:#ece6fb; --accent-xl:#f5f1fe;
+    --accent-glow:rgba(124,92,219,.16);
+    --paper:#fffdf6; --ink:#2c3a26;
+    --title-font:'Jua', sans-serif; --body-font:'Gaegu', cursive;
+    --shadow:0 10px 30px rgba(0,0,0,.07), 0 2px 8px rgba(0,0,0,.05);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Pretendard', -apple-system, sans-serif;
+    background:
+      radial-gradient(1200px 500px at 80% -10%, var(--accent-xl) 0%, transparent 60%),
+      radial-gradient(900px 450px at -5% 110%, #fdeef7 0%, transparent 55%),
+      #f5f6f3;
+    color:var(--ink); min-height:100vh;
+  }
+
+  header.bar{
+    position:sticky; top:0; z-index:50;
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    padding:14px 22px; background:rgba(255,255,255,.85);
+    backdrop-filter:saturate(140%) blur(10px); border-bottom:1px solid #e6e8e2;
+  }
+  .hub-link{
+    flex:0 0 auto; text-decoration:none; font-weight:700; font-size:.9rem; white-space:nowrap;
+    color:var(--accent-d); background:#fff; border:1.5px solid var(--accent-l); border-radius:11px;
+    padding:9px 13px; transition:.15s background,.15s transform;
+  }
+  .hub-link:hover{ background:var(--accent-xl); transform:translateX(-2px); }
+  .brand{display:flex; align-items:baseline; gap:10px;}
+  .brand h1{font-family:var(--title-font); font-weight:400; font-size:1.35rem; margin:0; letter-spacing:.3px; color:var(--accent-d);}
+  .brand .sub{font-size:.82rem; color:#6e756c;}
+  .bar .spacer{flex:1}
+  .btn{
+    font-family:inherit; font-size:.92rem; font-weight:700;
+    border:none; border-radius:11px; padding:10px 16px; cursor:pointer;
+    display:inline-flex; align-items:center; gap:7px; transition:.15s transform,.15s box-shadow,.15s background; white-space:nowrap;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn.ghost{background:#fff; color:var(--accent-d); border:1.5px solid var(--accent-l);}
+  .btn.ghost:hover{background:var(--accent-xl)}
+  .btn.warn{background:#fff; color:#b23; border:1.5px solid #f0c9cf;}
+  .btn.warn:hover{background:#fdeef0}
+  .btn.primary{background:var(--accent); color:#fff; box-shadow:0 6px 16px var(--accent-glow);}
+  .btn.primary:hover{background:var(--accent-d)}
+
+  .main{
+    display:grid; grid-template-columns: minmax(340px, 1fr) minmax(420px, 1.05fr);
+    gap:26px; align-items:start; max-width:1360px; margin:0 auto; padding:24px 22px 60px;
+  }
+  @media (max-width: 1000px){ .main{grid-template-columns:1fr;} }
+
+  .editor h2{font-size:1rem; margin:2px 0 14px; color:var(--accent-d); font-weight:800; display:flex; align-items:center; gap:8px;}
+  .opts{
+    background:#fff; border:1px solid #ebeee9; border-radius:14px; padding:14px 16px; margin-bottom:18px;
+    display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end; box-shadow:var(--shadow);
+  }
+  .field{display:flex; flex-direction:column; gap:6px;}
+  .field label{font-size:.78rem; font-weight:700; color:#5b625a;}
+  .field input[type=text], .field input[type=number], .field select{
+    font-family:inherit; font-size:.92rem; padding:9px 11px; border:1.5px solid #dfe3da; border-radius:10px;
+    background:#fcfdfb; color:var(--ink); transition:.15s border-color,.15s box-shadow;
+  }
+  .field input[type=number]{ width:96px; }
+  .field input:focus, .field select:focus, textarea:focus{
+    outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-glow);
+  }
+  .field label.chk{
+    display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+    font-size:.92rem; font-weight:600; color:var(--ink);
+    padding:9px 11px; border:1.5px solid #dfe3da; border-radius:10px; background:#fcfdfb;
+  }
+  .field label.chk input{ width:17px; height:17px; accent-color:var(--accent); cursor:pointer; }
+
+  /* ===== 입력 방식 탭 ===== */
+  .tabs{ display:flex; gap:8px; margin-bottom:14px; }
+  .tabs button{
+    font-family:inherit; font-weight:800; font-size:.9rem; cursor:pointer;
+    border:1.5px solid var(--accent-l); background:#fff; color:#6a7363;
+    border-radius:11px; padding:10px 16px; transition:.15s;
+  }
+  .tabs button.on{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  .pane{ display:none; }
+  .pane.on{ display:block; }
+
+  /* ===== 붙여넣기 수합 ===== */
+  .paste-box{
+    background:#fff; border:1px solid #ebeee9; border-radius:14px; padding:16px; box-shadow:var(--shadow);
+  }
+  .paste-box textarea{
+    font-family:'Pretendard',monospace; font-size:.86rem; width:100%; min-height:150px; resize:vertical;
+    border:1.5px solid #dfe3da; border-radius:10px; padding:11px; background:#fcfdfb; color:var(--ink); line-height:1.5;
+  }
+  .map-row{ display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; align-items:flex-end; }
+  .map-row .field select{ min-width:130px; }
+  .paste-actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; align-items:center; }
+  .parse-info{ font-size:.8rem; color:#8a9282; margin-top:6px; }
+  .parse-info b{ color:var(--accent-d); }
+
+  /* ===== 직접 입력 슬롯 ===== */
+  .slots{display:flex; flex-direction:column; gap:12px;}
+  .slot{
+    background:#fff; border:1px solid #ebeee9; border-radius:14px; padding:12px 14px 14px;
+    box-shadow:var(--shadow); position:relative;
+  }
+  .slot .head{display:flex; align-items:center; gap:8px; margin-bottom:9px;}
+  .slot .num{
+    width:24px; height:24px; border-radius:50%; background:var(--accent-l); color:var(--accent-d);
+    display:grid; place-items:center; font-weight:800; font-size:.78rem; flex:0 0 auto;
+  }
+  .slot .head input{
+    font-family:inherit; font-size:.9rem; font-weight:700; padding:7px 10px; border:1.5px solid #dfe3da;
+    border-radius:9px; background:#fcfdfb; color:var(--ink); flex:1 1 auto; min-width:0;
+  }
+  .slot .head .del{
+    flex:0 0 auto; border:1.5px solid #f0c9cf; background:#fff; color:#b23; border-radius:9px;
+    width:32px; height:32px; cursor:pointer; font-size:1rem; line-height:1;
+  }
+  .slot .head .del:hover{ background:#fdeef0; }
+  .slot textarea{
+    font-family:inherit; font-size:.92rem; padding:9px 11px; border:1.5px solid #dfe3da; border-radius:10px;
+    background:#fcfdfb; color:var(--ink); width:100%; resize:vertical; min-height:56px; line-height:1.5;
+  }
+  .slot-add{ margin-top:4px; }
+
+  .hint{font-size:.82rem; color:#737b6d; margin:16px 2px 0; line-height:1.7;}
+  .hint b{color:var(--accent-d)}
+
+  /* ===== 미리보기 ===== */
+  .preview{position:sticky; top:78px;}
+  .preview .toptools{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap:10px;}
+  .preview .toptools .t{font-size:.9rem; font-weight:800; color:var(--accent-d); display:flex; align-items:center; gap:7px;}
+  .preview .toptools .note{font-size:.75rem; color:#8a9282;}
+  .stage{
+    width:100%; display:flex; justify-content:center; overflow:auto;
+    background:#eef0ea; border:1px solid #e2e6dc; border-radius:16px; padding:18px;
+    box-shadow:inset 0 1px 5px rgba(0,0,0,.04);
+  }
+  #frame{ position:relative; margin:0 auto; }
+  #sheet{
+    position:absolute; top:0; left:0;
+    width:794px; height:1123px;
+    background-color:var(--paper);
+    transform-origin:top left;
+    box-shadow:0 12px 34px rgba(0,0,0,.16);
+    overflow:hidden;
+    display:flex; flex-direction:column;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  #sheet .sheet-inner{
+    position:relative; z-index:1; flex:1 1 auto; min-height:0;
+    display:flex; flex-direction:column; padding:34px 34px 12px;
+  }
+  .rp-title{
+    text-align:center; margin-bottom:18px; flex:0 0 auto;
+  }
+  .rp-title .band{
+    display:inline-block; font-family:var(--title-font); color:#fff; background:var(--accent);
+    padding:10px 28px; border-radius:999px; font-size:1.8em; letter-spacing:1px;
+    box-shadow:0 6px 16px var(--accent-glow);
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .rp-title .sub{ display:block; margin-top:8px; font-family:var(--body-font); font-size:1.1em; color:#8a8577; }
+  .rp-grid{
+    flex:1 1 auto; min-height:0; display:grid; gap:14px; align-content:start;
+  }
+  .note{
+    position:relative; border-radius:12px; padding:14px 14px 12px;
+    display:flex; flex-direction:column; gap:6px; overflow:hidden;
+    box-shadow:0 4px 10px rgba(0,0,0,.10);
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  .note .msg{
+    font-family:var(--body-font); color:#2e2a22; line-height:1.5; flex:1 1 auto;
+    white-space:pre-line; word-break:keep-all;
+  }
+  .note .who{
+    font-family:var(--body-font); font-weight:700; text-align:right; color:#4a4638; opacity:.85;
+  }
+  .note.empty .msg{ color:#b7b3a6; }
+  .note .pin{
+    position:absolute; top:-3px; left:50%; transform:translateX(-50%);
+    width:12px; height:12px; border-radius:50%; background:rgba(0,0,0,.14);
+  }
+  #sheet .credit{
+    position:relative; z-index:1; flex:0 0 auto;
+    text-align:center; padding:0 20px 14px;
+    font-family:'Pretendard', sans-serif; font-weight:600; letter-spacing:.4px;
+    color:var(--accent-d); font-size:12.5px;
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  #sheet .credit.hide{ display:none; }
+  #sheet .credit .cv{
+    display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent);
+    vertical-align:1px; margin:0 9px; opacity:.55;
+  }
+  .empty-state{
+    grid-column:1/-1; text-align:center; color:#b7b3a6; font-family:var(--body-font);
+    padding:60px 20px; font-size:1.3em;
+  }
+
+  @media print{
+    @page{ size:A4; margin:0; }
+    html,body{ background:#fff !important; }
+    header.bar{ display:none !important; }
+    .main{ display:block !important; max-width:none; padding:0 !important; }
+    .editor{ display:none !important; }
+    .preview{ position:static !important; }
+    .preview .toptools{ display:none !important; }
+    .stage{ background:#fff !important; border:none !important; padding:0 !important; box-shadow:none !important; overflow:visible !important; }
+    #frame{ width:auto !important; height:auto !important; margin:0 !important; }
+    #sheet{ position:static !important; transform:none !important; box-shadow:none !important; margin:0 !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <a class="hub-link" href="index.html" title="편지 만들기 허브로">←&nbsp;편지 허브</a>
+  <div class="brand">
+    <h1>🎡 학급 롤링페이퍼</h1>
+    <span class="sub">인원수만큼 카드가 생기고, 붙여넣기로 채워요</span>
+  </div>
+  <div class="spacer"></div>
+  <span class="sub" id="pageInfo" style="font-size:.82rem;color:#6e756c;"></span>
+  <button class="btn warn"  id="btnClear">🧹 전체 지우기</button>
+  <button class="btn primary" id="btnPrint">📄 인쇄 / PDF로 저장</button>
+</header>
+
+<div class="main">
+  <section class="editor">
+    <h2>🎡 롤링페이퍼 만들기</h2>
+
+    <div class="opts">
+      <div class="field" style="flex:1 1 200px">
+        <label for="optTitle">가운데 제목</label>
+        <input type="text" id="optTitle" placeholder="예) 우리 반 롤링페이퍼">
+      </div>
+      <div class="field" style="flex:1 1 160px">
+        <label for="optSub">소제목 (선택)</label>
+        <input type="text" id="optSub" placeholder="예) 2학년 3반 · 2026">
+      </div>
+      <div class="field">
+        <label for="optTheme">색 테마</label>
+        <select id="optTheme">
+          <option value="pastel">🌈 알록달록 파스텔</option>
+          <option value="green">🍀 초록</option>
+          <option value="pink">🎀 핑크</option>
+          <option value="blue">💙 파랑</option>
+          <option value="purple">💜 보라</option>
+          <option value="warm">🧡 따뜻한</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="optFont">글씨체</label>
+        <select id="optFont">
+          <option value="round">둥근 손글씨 (개구)</option>
+          <option value="pen">정성 펜글씨 (나눔펜)</option>
+          <option value="dongle">동글동글 (동글)</option>
+          <option value="gothic">또박또박 (고운돋움)</option>
+          <option value="gamja">감자꽃 손글씨</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="optPaper">용지 크기</label>
+        <select id="optPaper">
+          <option value="a4p">A4 세로</option>
+          <option value="a4l">A4 가로</option>
+          <option value="a3p">A3 세로 (큰 포스터)</option>
+          <option value="a3l">A3 가로 (큰 포스터)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="optCols">한 줄 카드 수</label>
+        <select id="optCols">
+          <option value="auto">자동</option>
+          <option value="2">2개</option>
+          <option value="3">3개</option>
+          <option value="4">4개</option>
+          <option value="5">5개</option>
+          <option value="6">6개</option>
+        </select>
+      </div>
+      <div class="field" style="flex:1 1 200px">
+        <label for="optMaker">만든 사람 (맨 아래)</label>
+        <input type="text" id="optMaker" placeholder="예) 해누리중학교 조승재">
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button id="tabDirect" class="on">✍️ 직접 입력</button>
+      <button id="tabImport">📋 붙여넣기 수합 (폼·엑셀)</button>
+    </div>
+
+    <!-- ===== 직접 입력 ===== -->
+    <div class="pane on" id="paneDirect">
+      <div class="opts" style="margin-bottom:14px;">
+        <div class="field">
+          <label for="optCount">인원수 (카드 개수)</label>
+          <input type="number" id="optCount" min="1" max="60" value="12">
+        </div>
+        <div class="field">
+          <label>&nbsp;</label>
+          <button class="btn ghost" id="btnApplyCount" type="button">↻ 인원수만큼 카드 만들기</button>
+        </div>
+        <div class="field" style="flex:1 1 220px">
+          <label for="optNames">이름 목록으로 만들기 (선택)</label>
+          <input type="text" id="optNames" placeholder="쉼표로 구분: 지민, 서준, 하윤 …">
+        </div>
+        <div class="field">
+          <label>&nbsp;</label>
+          <button class="btn ghost" id="btnApplyNames" type="button">이름으로 채우기</button>
+        </div>
+      </div>
+      <div class="slots" id="slots"></div>
+      <button class="btn ghost slot-add" id="btnAddSlot" type="button">＋ 카드 한 장 더</button>
+    </div>
+
+    <!-- ===== 붙여넣기 수합 ===== -->
+    <div class="pane" id="paneImport">
+      <div class="paste-box">
+        <div class="field">
+          <label for="pasteArea">폼 응답 표 붙여넣기 (구글폼·MS Forms → 엑셀/시트에서 표를 복사)</label>
+          <textarea id="pasteArea" placeholder="엑셀·구글시트에서 응답 표(제목 줄 포함)를 드래그해 복사(Ctrl+C)한 뒤 여기에 붙여넣기(Ctrl+V) 하세요.
+
+예)
+받는사람	이름	하고 싶은 말
+지민	서준	너랑 짝 해서 즐거웠어!
+서준	하윤	항상 웃겨줘서 고마워 ㅎㅎ"></textarea>
+        </div>
+        <div class="map-row">
+          <div class="field">
+            <label for="mapTo">받는 사람 열</label>
+            <select id="mapTo"></select>
+          </div>
+          <div class="field">
+            <label for="mapFrom">보낸 사람(이름) 열</label>
+            <select id="mapFrom"></select>
+          </div>
+          <div class="field">
+            <label for="mapMsg">내용(메시지) 열</label>
+            <select id="mapMsg"></select>
+          </div>
+        </div>
+        <div class="map-row">
+          <div class="field" style="flex:1 1 240px">
+            <label for="optTarget">누구의 롤링페이퍼를 만들까요?</label>
+            <select id="optTarget"></select>
+          </div>
+        </div>
+        <div class="paste-actions">
+          <button class="btn primary" id="btnParse" type="button">📥 표 읽어서 채우기</button>
+          <button class="btn warn" id="btnClearPaste" type="button">붙여넣기 지우기</button>
+          <span class="parse-info" id="parseInfo"></span>
+        </div>
+      </div>
+      <p class="hint">
+        💡 폼은 문항을 <b>받는 사람 · (보내는) 이름 · 하고 싶은 말</b> 3개로 만들면 딱 맞아요. 익명으로 하려면 ‘이름’ 문항을 빼면 됩니다.<br>
+        📊 응답을 <b>엑셀/구글시트로 열어</b> 표 전체(제목 줄 포함)를 드래그·복사한 뒤 위에 붙여넣고 <b>표 읽어서 채우기</b>를 누르세요.<br>
+        👤 ‘받는 사람 열’을 지정하면 <b>대상마다 한 장씩</b> 만들 수 있어요. <b>‘전체 한 장’</b>을 고르면 모든 메시지가 한 장에 모여요.
+      </p>
+    </div>
+
+    <p class="hint">
+      🖨️ <b>인쇄 / PDF로 저장</b> → 인쇄 창에서 프린터 대신 <b>“PDF로 저장”</b> 선택. 배경 색이 나오게 하려면 <b>‘배경 그래픽’</b> 옵션을 켜주세요.<br>
+      💾 입력한 내용은 이 브라우저에 <b>자동 저장</b>돼요. 카드가 많으면 <b>A3</b>나 <b>한 줄 카드 수</b>를 조절하면 한 장에 예쁘게 들어가요.
+    </p>
+  </section>
+
+  <section class="preview">
+    <div class="toptools">
+      <span class="t">👀 미리보기</span>
+      <span class="note" id="previewNote"></span>
+    </div>
+    <div class="stage" id="stage">
+      <div id="frame">
+        <div id="sheet">
+          <div class="sheet-inner">
+            <div class="rp-title" id="rpTitle"></div>
+            <div class="rp-grid" id="rpGrid"></div>
+          </div>
+          <div class="credit" id="credit"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var KEY = "class_rollingpaper_v1";
+
+  var FONTS = {
+    round:  "'Gaegu', cursive",
+    pen:    "'Nanum Pen Script', cursive",
+    dongle: "'Dongle', sans-serif",
+    gothic: "'Gowun Dodum', sans-serif",
+    gamja:  "'Gamja Flower', cursive"
+  };
+  var TITLE_FONTS = {
+    round:"'Jua', sans-serif", pen:"'Nanum Pen Script', cursive", dongle:"'Dongle', sans-serif",
+    gothic:"'Jua', sans-serif", gamja:"'Gamja Flower', cursive"
+  };
+
+  // 색 테마 — 카드 배경 팔레트 + 포인트색
+  var THEMES = {
+    pastel:{ accent:"#7c5cdb", cards:["#fff3b0","#ffd6e0","#c8f0d0","#cfe3ff","#ffe0c2","#e6d6ff","#d6f5f0","#ffe9a8"] },
+    green: { accent:"#3a9d23", cards:["#e7f3e1","#d3edc8","#eaf7c9","#dff0d8","#cfeccb","#e9f6d6"] },
+    pink:  { accent:"#ff5fa2", cards:["#ffe4ef","#ffd6e0","#ffe0ec","#ffe9f2","#ffdbe8","#ffeef5"] },
+    blue:  { accent:"#2f7bd6", cards:["#dceafc","#cfe3ff","#e2f0ff","#d4e8ff","#e8f2ff","#d9ecff"] },
+    purple:{ accent:"#7c5cdb", cards:["#ece6fb","#e0d6f7","#f0eaff","#e6ddfb","#efe8ff","#e3d9fa"] },
+    warm:  { accent:"#e8920c", cards:["#fdeccd","#ffe6c2","#fff0d6","#ffe8c8","#fdf0dc","#ffeccf"] }
+  };
+
+  // ---------- 용지 ----------
+  var PAPERS = {
+    a4p:{w:794, h:1123}, a4l:{w:1123, h:794},
+    a3p:{w:1123, h:1587}, a3l:{w:1587, h:1123}
+  };
+
+  function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function hx(c){ c=String(c).replace("#",""); if(c.length===3)c=c.split("").map(function(x){return x+x;}).join(""); return [parseInt(c.slice(0,2),16),parseInt(c.slice(2,4),16),parseInt(c.slice(4,6),16)]; }
+  function toHex(a){ return "#"+a.map(function(v){ v=Math.max(0,Math.min(255,Math.round(v))); return (v<16?"0":"")+v.toString(16); }).join(""); }
+  function mix(c1,c2,t){ var a=hx(c1),b=hx(c2); return toHex([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t]); }
+
+  // ---------- 상태 ----------
+  function blankSlots(n){
+    return Array.from({length:n}, function(){ return {name:"", msg:""}; });
+  }
+  function blank(){
+    return {
+      title:"우리 반 롤링페이퍼", sub:"", theme:"pastel", font:"round",
+      paper:"a4p", cols:"auto", maker:"해누리중학교 조승재",
+      mode:"direct", count:12,
+      slots: blankSlots(12),
+      raw:"", map:{to:-1, from:-1, msg:-1}, target:"__ALL__"
+    };
+  }
+  var state = load();
+
+  function load(){
+    try{
+      var s = JSON.parse(localStorage.getItem(KEY));
+      if(!s || typeof s!=="object") return blank();
+      var b = blank();
+      for(var k in b){ if(!(k in s)) s[k]=b[k]; }
+      if(!Array.isArray(s.slots)) s.slots = blankSlots(s.count||12);
+      if(!THEMES[s.theme]) s.theme="pastel";
+      if(!FONTS[s.font]) s.font="round";
+      if(!PAPERS[s.paper]) s.paper="a4p";
+      if(!s.map || typeof s.map!=="object") s.map={to:-1,from:-1,msg:-1};
+      if(s.mode!=="import") s.mode="direct";
+      return s;
+    }catch(e){ return blank(); }
+  }
+  var saveTimer=null;
+  function save(){
+    if(saveTimer) clearTimeout(saveTimer);
+    saveTimer=setTimeout(function(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }, 250);
+  }
+
+  // ---------- 표 파싱 ----------
+  function splitRow(line, delim){
+    if(delim!==",") return line.split(delim);
+    // 쉼표 구분 + 따옴표 안 쉼표 보호
+    var out=[], cur="", q=false;
+    for(var i=0;i<line.length;i++){
+      var ch=line[i];
+      if(ch==='"'){ if(q && line[i+1]==='"'){ cur+='"'; i++; } else q=!q; }
+      else if(ch===',' && !q){ out.push(cur); cur=""; }
+      else cur+=ch;
+    }
+    out.push(cur);
+    return out;
+  }
+  function parseTable(text){
+    var lines = String(text||"").replace(/\r/g,"").split("\n").filter(function(l){ return l.trim()!==""; });
+    if(!lines.length) return {header:[], rows:[]};
+    var delim = lines[0].indexOf("\t")>=0 ? "\t" : (lines[0].indexOf(",")>=0 ? "," : "\t");
+    var grid = lines.map(function(l){ return splitRow(l, delim).map(function(c){ return c.trim(); }); });
+    var header = grid[0];
+    var rows = grid.slice(1);
+    return {header:header, rows:rows};
+  }
+  function guessCol(header, keys){
+    for(var i=0;i<header.length;i++){
+      var h=header[i].toLowerCase();
+      for(var j=0;j<keys.length;j++){ if(h.indexOf(keys[j])>=0) return i; }
+    }
+    return -1;
+  }
+
+  // 현재 표시할 카드 목록 계산: [{name, msg}]
+  function computeItems(){
+    if(state.mode==="direct"){
+      return state.slots.map(function(s){ return {name:s.name||"", msg:s.msg||""}; });
+    }
+    // import
+    var t = parseTable(state.raw);
+    if(!t.rows.length) return [];
+    var mi=state.map.msg, fi=state.map.from, ti=state.map.to;
+    var out=[];
+    t.rows.forEach(function(r){
+      var msg = mi>=0 ? (r[mi]||"") : r.join(" ");
+      if(!msg) return;
+      if(ti>=0 && state.target!=="__ALL__"){
+        var to=(r[ti]||"").trim();
+        if(to!==state.target) return;
+      }
+      out.push({ name: fi>=0 ? (r[fi]||"") : "", msg: msg });
+    });
+    return out;
+  }
+  function uniqueTargets(){
+    if(state.mode!=="import" || state.map.to<0) return [];
+    var t=parseTable(state.raw), seen={}, list=[];
+    t.rows.forEach(function(r){
+      var v=(r[state.map.to]||"").trim();
+      if(v && !seen[v]){ seen[v]=1; list.push(v); }
+    });
+    return list;
+  }
+
+  // ---------- 옵션 UI 연결 ----------
+  function $(id){ return document.getElementById(id); }
+  function bindText(id, key){
+    var el=$(id); if(!el) return;
+    el.value = state[key]||"";
+    el.addEventListener("input", function(){ state[key]=el.value; save(); renderPreview(); });
+  }
+  function bindSelect(id, key, after){
+    var el=$(id); if(!el) return;
+    el.value = state[key];
+    el.addEventListener("change", function(){ state[key]=el.value; save(); if(after)after(); renderPreview(); });
+  }
+
+  bindText("optTitle","title");
+  bindText("optSub","sub");
+  bindText("optMaker","maker");
+  bindSelect("optTheme","theme");
+  bindSelect("optFont","font");
+  bindSelect("optPaper","paper", fitSheet);
+  bindSelect("optCols","cols");
+
+  // ---------- 탭 ----------
+  function setMode(m){
+    state.mode=m; save();
+    $("tabDirect").classList.toggle("on", m==="direct");
+    $("tabImport").classList.toggle("on", m==="import");
+    $("paneDirect").classList.toggle("on", m==="direct");
+    $("paneImport").classList.toggle("on", m==="import");
+    renderPreview();
+  }
+  $("tabDirect").addEventListener("click", function(){ setMode("direct"); });
+  $("tabImport").addEventListener("click", function(){ setMode("import"); });
+
+  // ---------- 직접 입력 슬롯 ----------
+  function renderSlots(){
+    var box=$("slots"); box.innerHTML="";
+    state.slots.forEach(function(s,i){
+      var d=document.createElement("div"); d.className="slot";
+      d.innerHTML =
+        '<div class="head">'+
+          '<span class="num">'+(i+1)+'</span>'+
+          '<input type="text" data-i="'+i+'" data-k="name" placeholder="보낸 사람 (이름, 선택)" value="'+esc(s.name)+'">'+
+          '<button class="del" data-del="'+i+'" title="삭제">×</button>'+
+        '</div>'+
+        '<textarea data-i="'+i+'" data-k="msg" placeholder="하고 싶은 말을 적어요">'+esc(s.msg)+'</textarea>';
+      box.appendChild(d);
+    });
+    box.querySelectorAll("input[data-k],textarea[data-k]").forEach(function(el){
+      el.addEventListener("input", function(){
+        var i=+el.getAttribute("data-i"), k=el.getAttribute("data-k");
+        state.slots[i][k]=el.value; save(); renderPreview();
+      });
+    });
+    box.querySelectorAll("[data-del]").forEach(function(b){
+      b.addEventListener("click", function(){
+        var i=+b.getAttribute("data-del");
+        state.slots.splice(i,1); state.count=state.slots.length; $("optCount").value=state.count;
+        save(); renderSlots(); renderPreview();
+      });
+    });
+  }
+  $("optCount").value = state.count;
+  $("btnApplyCount").addEventListener("click", function(){
+    var n=Math.max(1, Math.min(60, parseInt($("optCount").value,10)||1));
+    state.count=n;
+    var cur=state.slots.slice(0,n);
+    while(cur.length<n) cur.push({name:"",msg:""});
+    state.slots=cur; save(); renderSlots(); renderPreview();
+  });
+  $("btnApplyNames").addEventListener("click", function(){
+    var raw=$("optNames").value.split(/[,，\n]/).map(function(x){return x.trim();}).filter(Boolean);
+    if(!raw.length){ return; }
+    state.slots = raw.map(function(nm){ return {name:nm, msg:""}; });
+    state.count=state.slots.length; $("optCount").value=state.count;
+    save(); renderSlots(); renderPreview();
+  });
+  $("btnAddSlot").addEventListener("click", function(){
+    state.slots.push({name:"",msg:""}); state.count=state.slots.length; $("optCount").value=state.count;
+    save(); renderSlots(); renderPreview();
+  });
+
+  // ---------- 붙여넣기 수합 ----------
+  var pasteEl=$("pasteArea");
+  pasteEl.value = state.raw||"";
+  pasteEl.addEventListener("input", function(){ state.raw=pasteEl.value; save(); refreshMapOptions(); });
+
+  function fillSelect(sel, header, allowNone, selectedIdx){
+    sel.innerHTML="";
+    if(allowNone){
+      var o=document.createElement("option"); o.value="-1"; o.textContent="(없음)"; sel.appendChild(o);
+    }
+    header.forEach(function(h,i){
+      var o=document.createElement("option"); o.value=String(i);
+      o.textContent="["+(i+1)+"] "+(h||"열"+(i+1)); sel.appendChild(o);
+    });
+    sel.value=String(selectedIdx);
+  }
+  function refreshMapOptions(){
+    var t=parseTable(state.raw);
+    var header=t.header;
+    if(!header.length){
+      ["mapTo","mapFrom","mapMsg"].forEach(function(id){ $(id).innerHTML='<option value="-1">(표를 붙여넣어 주세요)</option>'; });
+      $("optTarget").innerHTML='<option value="__ALL__">전체 한 장</option>';
+      $("parseInfo").textContent="";
+      return;
+    }
+    // 자동 추정 (아직 지정 안 됐을 때만)
+    if(state.map.to<0)   state.map.to   = guessCol(header,["받는","대상","누구","to","친구"]);
+    if(state.map.from<0) state.map.from = guessCol(header,["이름","보내","작성","from","성명","닉네임"]);
+    if(state.map.msg<0)  state.map.msg  = guessCol(header,["내용","메시지","하고 싶","한마디","응원","message","글"]);
+    if(state.map.msg<0)  state.map.msg  = header.length-1; // 마지막 열 기본
+
+    fillSelect($("mapTo"), header, true, state.map.to);
+    fillSelect($("mapFrom"), header, true, state.map.from);
+    fillSelect($("mapMsg"), header, false, Math.max(0,state.map.msg));
+
+    refreshTargets();
+    $("parseInfo").innerHTML = "표 인식: <b>"+t.rows.length+"</b>개 응답 · <b>"+header.length+"</b>개 열";
+  }
+  function refreshTargets(){
+    var sel=$("optTarget"); sel.innerHTML="";
+    var all=document.createElement("option"); all.value="__ALL__"; all.textContent="🗒️ 전체 한 장 (모든 메시지)"; sel.appendChild(all);
+    var list=uniqueTargets();
+    list.forEach(function(nm){
+      var o=document.createElement("option"); o.value=nm; o.textContent="👤 "+nm+"에게"; sel.appendChild(o);
+    });
+    if(list.indexOf(state.target)<0 && state.target!=="__ALL__") state.target="__ALL__";
+    sel.value=state.target;
+  }
+  ["mapTo","mapFrom","mapMsg"].forEach(function(id){
+    var keyMap={mapTo:"to",mapFrom:"from",mapMsg:"msg"};
+    $(id).addEventListener("change", function(){
+      state.map[keyMap[id]] = parseInt($(id).value,10);
+      save(); refreshTargets(); renderPreview();
+    });
+  });
+  $("optTarget").addEventListener("change", function(){ state.target=$("optTarget").value; save(); renderPreview(); });
+  $("btnParse").addEventListener("click", function(){ refreshMapOptions(); renderPreview(); });
+  $("btnClearPaste").addEventListener("click", function(){
+    state.raw=""; pasteEl.value=""; state.map={to:-1,from:-1,msg:-1}; state.target="__ALL__";
+    save(); refreshMapOptions(); renderPreview();
+  });
+
+  // ---------- 미리보기 렌더 ----------
+  function currentTargetName(){
+    if(state.mode==="import" && state.target!=="__ALL__") return state.target;
+    return "";
+  }
+  function renderPreview(){
+    var theme=THEMES[state.theme]||THEMES.pastel;
+    applyAccent(theme.accent);
+
+    // 제목
+    var tEl=$("rpTitle");
+    var titleText = state.title || "우리 반 롤링페이퍼";
+    var tgt = currentTargetName();
+    var shown = tgt ? (tgt+"에게") : titleText;
+    tEl.style.fontFamily = TITLE_FONTS[state.font]||TITLE_FONTS.round;
+    tEl.innerHTML = '<span class="band">'+esc(shown)+'</span>'+
+      (state.sub ? '<span class="sub">'+esc(state.sub)+'</span>' : (tgt? '<span class="sub">'+esc(titleText)+'</span>':''));
+
+    // 카드
+    var items=computeItems();
+    var grid=$("rpGrid");
+    grid.style.fontFamily = FONTS[state.font]||FONTS.round;
+
+    var n=items.length;
+    // 열 수
+    var cols;
+    if(state.cols!=="auto"){ cols=parseInt(state.cols,10); }
+    else {
+      var land = PAPERS[state.paper].w > PAPERS[state.paper].h;
+      var big = state.paper.charAt(1)==="3";
+      cols = n<=4?2 : n<=9?3 : n<=16?4 : n<=30?5 : 6;
+      if(land) cols=Math.min(cols+1,7);
+      if(big && !land) cols=Math.min(cols+1,6);
+    }
+    cols=Math.max(1,Math.min(7,cols));
+    grid.style.gridTemplateColumns="repeat("+cols+",1fr)";
+
+    // 글자 크기: 카드 수·열 수 기준
+    var perRow=cols, rows=Math.ceil(Math.max(n,1)/perRow);
+    var fs = Math.max(11, Math.min(22, Math.round(26 - rows*1.2 - Math.max(0,cols-3)*1.1)));
+    grid.style.fontSize = fs+"px";
+
+    grid.innerHTML="";
+    if(!n){
+      grid.innerHTML='<div class="empty-state">왼쪽에서 카드를 입력하거나<br>폼 응답 표를 붙여넣어 주세요 🎡</div>';
+    } else {
+      items.forEach(function(it,i){
+        var bg=theme.cards[i % theme.cards.length];
+        var rot=((i*7)%5)-2; // -2 ~ +2도 살짝 기울임
+        var d=document.createElement("div");
+        d.className="note"+((!it.msg)?" empty":"");
+        d.style.background=bg;
+        d.style.transform="rotate("+rot+"deg)";
+        d.innerHTML=
+          '<span class="pin"></span>'+
+          '<div class="msg">'+ (it.msg?esc(it.msg):"(내용 없음)") +'</div>'+
+          (it.name ? '<div class="who">- '+esc(it.name)+'</div>' : '');
+        grid.appendChild(d);
+      });
+    }
+
+    // 크레딧
+    var credit=$("credit");
+    if(state.maker){ credit.classList.remove("hide"); credit.innerHTML='<span class="cv"></span>'+esc(state.maker)+'<span class="cv"></span>'; }
+    else credit.classList.add("hide");
+
+    // 안내 문구
+    var info="";
+    if(state.mode==="import"){
+      info = tgt ? ("‘"+tgt+"’에게 온 메시지 "+n+"개") : ("전체 메시지 "+n+"개");
+    } else { info = "카드 "+n+"장"; }
+    $("previewNote").textContent = info;
+    $("pageInfo").textContent = info;
+
+    fitSheet();
+  }
+  function applyAccent(accent){
+    var r=document.documentElement;
+    r.style.setProperty("--accent",accent);
+    r.style.setProperty("--accent-d",mix(accent,"#000",0.28));
+    r.style.setProperty("--accent-l",mix(accent,"#fff",0.84));
+    r.style.setProperty("--accent-xl",mix(accent,"#fff",0.92));
+    var rgb=hx(accent);
+    r.style.setProperty("--accent-glow","rgba("+rgb[0]+","+rgb[1]+","+rgb[2]+",0.16)");
+  }
+
+  // ---------- 미리보기 크기 맞춤 ----------
+  function fitSheet(){
+    var p=PAPERS[state.paper]||PAPERS.a4p;
+    var sheet=$("sheet"), frame=$("frame"), stage=$("stage");
+    sheet.style.width=p.w+"px"; sheet.style.height=p.h+"px";
+    var avail = stage.clientWidth - 36; // padding 18*2
+    if(avail<=0) avail=p.w;
+    var scale=Math.min(1, avail/p.w);
+    sheet.style.transform="scale("+scale+")";
+    frame.style.width=(p.w*scale)+"px";
+    frame.style.height=(p.h*scale)+"px";
+  }
+  window.addEventListener("resize", fitSheet);
+
+  // ---------- 상단 버튼 ----------
+  $("btnPrint").addEventListener("click", function(){
+    var p=PAPERS[state.paper]||PAPERS.a4p;
+    var land = p.w>p.h;
+    var size = (state.paper.charAt(1)==="3") ? "A3" : "A4";
+    // @page 크기 동적 지정
+    var st=document.getElementById("printPageStyle");
+    if(!st){ st=document.createElement("style"); st.id="printPageStyle"; document.head.appendChild(st); }
+    st.textContent="@media print{ @page{ size:"+size+(land?" landscape":" portrait")+"; margin:0; } "+
+      "#sheet{ width:"+p.w+"px !important; height:"+p.h+"px !important; } }";
+    window.print();
+  });
+  $("btnClear").addEventListener("click", function(){
+    if(!confirm("입력한 내용을 모두 지울까요? (되돌릴 수 없어요)")) return;
+    state=blank();
+    try{ localStorage.removeItem(KEY); }catch(e){}
+    // UI 리셋
+    $("optTitle").value=state.title; $("optSub").value=state.sub; $("optMaker").value=state.maker;
+    $("optTheme").value=state.theme; $("optFont").value=state.font; $("optPaper").value=state.paper;
+    $("optCols").value=state.cols; $("optCount").value=state.count; $("optNames").value="";
+    pasteEl.value=""; setMode("direct");
+    renderSlots(); refreshMapOptions(); renderPreview();
+  });
+
+  // ---------- 초기 렌더 ----------
+  setMode(state.mode);
+  renderSlots();
+  refreshMapOptions();
+  renderPreview();
+  setTimeout(fitSheet, 60);
+})();
+</script>
+<footer id="app-credit" style="width:100%;box-sizing:border-box;margin:2.5rem 0 0;padding:14px 12px;text-align:center;font-size:12.5px;line-height:1.6;color:#8a8f98;font-family:system-ui,-apple-system,'Segoe UI','Malgun Gothic',sans-serif;border-top:1px solid rgba(128,128,128,.25);">© 2026 조승재(과학이조선생) · 해누리중학교 · All rights reserved<br><span style="font-size:11px;opacity:.85;">최종 업데이트: 2026-08-30</span></footer>
+</body>
+</html>
