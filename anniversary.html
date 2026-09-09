@@ -128,9 +128,9 @@
   .preview .toptools{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap:10px;}
   .preview .toptools .t{font-size:.9rem; font-weight:800; color:var(--accent-d); display:flex; align-items:center; gap:7px;}
   .preview .toptools .note{font-size:.75rem; color:#8a9282;}
-  #deco{ position:absolute; inset:0; z-index:4; width:100%; height:100%; pointer-events:none; touch-action:none; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  #deco.active{ pointer-events:auto; cursor:crosshair; }
-  #deco.active.tool-move{ cursor:default; }
+  .deco{ position:absolute; inset:0; z-index:4; width:100%; height:100%; pointer-events:none; touch-action:none; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .deco.active{ pointer-events:auto; cursor:crosshair; }
+  .deco.active.tool-move{ cursor:default; }
   .deco-bar{ display:none; flex-wrap:wrap; gap:8px 10px; align-items:center; margin-bottom:12px; background:#fff; border:1px solid #ebeee9; border-radius:12px; padding:10px 12px; box-shadow:var(--shadow); }
   .deco-bar.show{ display:flex; }
   .deco-seg{ display:inline-flex; border:1.5px solid var(--accent-l); border-radius:10px; overflow:hidden; }
@@ -152,7 +152,7 @@
   }
   #frame{ position:relative; margin:0 auto; }
 
-  #sheet{
+  .sheet{
     position:absolute; top:0; left:0;
     width:794px; height:1123px;
     background-color:var(--paper);
@@ -163,14 +163,14 @@
     display:flex; flex-direction:column;
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
-  #userbg{
+  .userbg{
     position:absolute; inset:0; z-index:0;
     background-size:cover; background-position:center; background-repeat:no-repeat;
     opacity:.5; display:none;
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
-  #sheet.userbg-active .content{ text-shadow:0 1px 2px rgba(255,255,255,.7); }
-  #sheet .grid{
+  .sheet.userbg-active .content{ text-shadow:0 1px 2px rgba(255,255,255,.7); }
+  .sheet .grid{
     position:relative; z-index:1; flex:1 1 auto; min-height:0;
     display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr 1fr;
     gap:14px; padding:20px 20px 8px;
@@ -213,26 +213,64 @@
   .content .from{ font-family:var(--body-font); font-weight:700; font-size:1.0em; color:#3f4838; margin-top:2px; }
 
   /* 배치별 미세 조정 (큰 편지는 왼쪽 정렬로 손편지 느낌) */
-  #grid[data-layout="one"] .cell, #grid[data-layout="two"] .cell{ padding:30px 32px; }
-  #grid[data-layout="one"] .content, #grid[data-layout="two"] .content{ align-items:flex-start; text-align:left; gap:14px; }
-  #grid[data-layout="one"] .content .title, #grid[data-layout="two"] .content .title{ align-self:center; }
-  #grid[data-layout="one"] .content .date, #grid[data-layout="two"] .content .date{ align-self:center; }
-  #grid[data-layout="one"] .content .body, #grid[data-layout="two"] .content .body{ align-items:flex-start; }
-  #grid[data-layout="one"] .content .ps, #grid[data-layout="two"] .content .ps{ align-self:flex-start; }
-  #grid[data-layout="one"] .content{ gap:18px; }
+  .grid[data-layout="one"] .cell, .grid[data-layout="two"] .cell{ padding:30px 32px; }
+  .grid[data-layout="one"] .content, .grid[data-layout="two"] .content{ align-items:flex-start; text-align:left; gap:14px; }
+  .grid[data-layout="one"] .content .title, .grid[data-layout="two"] .content .title{ align-self:center; }
+  .grid[data-layout="one"] .content .date, .grid[data-layout="two"] .content .date{ align-self:center; }
+  .grid[data-layout="one"] .content .body, .grid[data-layout="two"] .content .body{ align-items:flex-start; }
+  .grid[data-layout="one"] .content .ps, .grid[data-layout="two"] .content .ps{ align-self:flex-start; }
+  .grid[data-layout="one"] .content{ gap:18px; }
 
-  #sheet .credit{
+  .sheet .credit{
     position:relative; z-index:1; flex:0 0 auto;
     text-align:center; padding:0 20px 14px;
     font-family:'Pretendard', sans-serif; font-size:12.5px; font-weight:600; letter-spacing:.4px;
     color:var(--accent-d);
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
-  #sheet .credit.hide{ display:none; }
-  #sheet .credit .cv{
+  .sheet .credit.hide{ display:none; }
+  .sheet .credit .cv{
     display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent);
     vertical-align:1px; margin:0 9px; opacity:.55;
   }
+
+  /* ===== 폼 응답 수합 ===== */
+  .import{
+    border:1.5px solid var(--accent-l); border-radius:14px; background:var(--accent-xl);
+    padding:12px 14px; margin:0 0 16px;
+  }
+  .imp-head{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .imp-head b{ color:var(--accent-d); font-size:.95rem; }
+  .imp-head .imp-sub{ font-size:.78rem; color:#6b726a; flex:1 1 200px; }
+  .imp-head .btn{ padding:7px 12px; font-size:.8rem; }
+  .imp-body{ margin-top:12px; display:flex; flex-direction:column; gap:10px; }
+  .imp-body textarea{
+    width:100%; box-sizing:border-box; min-height:110px; resize:vertical;
+    padding:10px 12px; border:1.5px solid var(--accent-l); border-radius:10px;
+    background:#fff; font-size:.85rem; line-height:1.5; font-family:inherit;
+  }
+  .imp-body textarea:focus{ outline:none; border-color:var(--accent); }
+  .imp-l{ font-size:.78rem; font-weight:700; color:#5b625a; }
+  .imp-maps{ display:flex; gap:10px; flex-wrap:wrap; }
+  .imp-maps .field{ flex:1 1 150px; }
+  .imp-actions{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .imp-actions .btn{ padding:9px 13px; font-size:.82rem; }
+  .imp-info{ font-size:.8rem; color:#6b726a; }
+  .imp-info b{ color:var(--accent-d); }
+  .imp-nav{
+    display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+    border-top:1px dashed var(--accent-l); padding-top:10px;
+  }
+  .imp-nav select{
+    flex:1 1 170px; padding:9px 11px; border:1.5px solid var(--accent-l);
+    border-radius:10px; background:#fff; font-size:.85rem; font-family:inherit;
+  }
+  .imp-nav .btn{ padding:9px 13px; font-size:.82rem; }
+  .imp-tip{ font-size:.78rem; line-height:1.7; color:#6b726a; margin:0; }
+  .imp-tip b{ color:var(--accent-d); }
+
+  /* ===== 전체 연속 인쇄용 시트 더미 (화면에서는 숨김) ===== */
+  .printstack{ display:none; }
 
   @media print{
     @page{ size:A4; margin:0; }
@@ -244,7 +282,12 @@
     .preview .toptools{ display:none !important; }
     .stage{ background:#fff !important; border:none !important; padding:0 !important; box-shadow:none !important; overflow:visible !important; }
     #frame{ width:auto !important; height:auto !important; margin:0 !important; }
-    #sheet{ position:static !important; transform:none !important; width:210mm !important; height:297mm !important; box-shadow:none !important; margin:0 !important; }
+    .sheet{ position:static !important; transform:none !important; width:210mm !important; height:297mm !important; box-shadow:none !important; margin:0 !important; }
+    /* 전체 연속 인쇄: 미리보기 대신 시트 더미를 한 장씩 */
+    body.batch .preview{ display:none !important; }
+    body.batch .printstack{ display:block !important; }
+    .printstack .sheet{ overflow:hidden; break-after:page; page-break-after:always; }
+    .printstack .sheet:last-child{ break-after:auto; page-break-after:auto; }
   }
 </style>
 </head>
@@ -343,10 +386,46 @@
       </div>
     </div>
 
+    <div class="import" id="importBox">
+      <div class="imp-head">
+        <b>📋 폼 응답으로 채우기</b>
+        <span class="imp-sub">구글폼 · MS Forms 응답을 붙여넣으면 편지 칸이 자동으로 채워져요 (복붙 1번)</span>
+        <button class="btn ghost" id="btnImpToggle" type="button" aria-expanded="false">펼치기</button>
+      </div>
+      <div class="imp-body" id="impBody" hidden>
+        <div>
+          <label class="imp-l" for="pasteArea">폼 응답 표 붙여넣기 (엑셀 · 구글시트에서 제목 줄까지 표 전체를 복사)</label>
+          <textarea id="pasteArea" placeholder="엑셀·구글시트에서 응답 표(제목 줄 포함)를 드래그해 복사(Ctrl+C)한 뒤 여기에 붙여넣기(Ctrl+V) 하세요.&#10;탭 구분(엑셀 복사)과 쉼표(CSV) 모두 인식합니다."></textarea>
+        </div>
+        <div class="imp-maps">
+          <div class="field"><label for="mapTo">받는 사람 열</label><select id="mapTo"></select></div>
+          <div class="field"><label for="mapFrom">보내는 사람 열</label><select id="mapFrom"></select></div>
+          <div class="field"><label for="mapMsg">편지 내용 열</label><select id="mapMsg"></select></div>
+        </div>
+        <div class="imp-actions">
+          <button class="btn primary" id="btnImpApply" type="button">📥 편지 칸에 채우기</button>
+          <button class="btn warn" id="btnImpClear" type="button">🧹 붙여넣기 지우기</button>
+          <span class="imp-info" id="parseInfo"></span>
+        </div>
+        <div class="imp-nav" id="impNav" hidden>
+          <button class="btn ghost" id="btnImpPrev" type="button">◀ 이전</button>
+          <select id="impPage"></select>
+          <button class="btn ghost" id="btnImpNext" type="button">다음 ▶</button>
+          <button class="btn primary" id="btnPrintAll" type="button">🖨️ 전체 연속 인쇄</button>
+        </div>
+        <p class="imp-tip">
+          💡 폼 문항을 <b>받는 사람 · 보내는 사람 · 하고 싶은 말</b> 3개로 만들면 열이 자동으로 인식돼요. 동명이인 대비로 받는 사람은 <b>반·번호까지</b> 받는 걸 권합니다.<br>
+          ✏️ 채워진 뒤에도 아래 칸에서 <b>그대로 고칠 수 있어요.</b> 오타를 다듬거나 문장을 바꾼 내용은 응답 목록에도 함께 저장됩니다.<br>
+          🖨️ <b>전체 연속 인쇄</b>는 모든 응답을 <b>한 번의 인쇄</b>로 여러 장 만들어요. (편지 배치가 <b>1장</b>이면 1명당 1쪽, <b>6칸</b>이면 6명이 1쪽)
+        </p>
+      </div>
+    </div>
+
     <div class="cards" id="cards"></div>
 
     <p class="hint">
       💡 <b>받는 사람 · 편지 내용</b>만 적으면 오른쪽 미리보기가 바로 바뀌어요. 추신·보내는 사람·날짜는 비워둬도 됩니다.<br>
+      📋 <b>폼 응답으로 채우기</b>를 열면 구글폼·MS Forms 응답 표를 한 번 붙여넣어 반 전체 편지를 자동으로 채우고 <b>연속 인쇄</b>까지 할 수 있어요.<br>
       📐 <b>편지 배치</b>로 6칸(쪽지)부터 1장(긴 손편지)까지 고를 수 있어요. <b>1번 내용 전체 복사</b>는 반 전체에 같은 글을 보낼 때 편해요.<br>
       🎲 추신 칸 옆 <b>주사위</b>를 누르면 상황에 맞는 메시지가 랜덤으로 들어가요. 🎨 <b>템플릿</b>을 바꾸면 배경·색이 통째로 바뀝니다. 💾 자동 저장돼요.<br>
       🖼️ <b>배경 이미지 업로드</b> 후 <b>배경 투명도</b>로 사진을 연하게 만들어 그 위에 편지를 쓸 수 있어요. (업로드한 사진은 저장되지 않아요)<br>
@@ -376,16 +455,18 @@
     </div>
     <div class="stage" id="stage">
       <div id="frame">
-        <div id="sheet">
-          <div id="userbg"></div>
+        <div id="sheet" class="sheet">
+          <div id="userbg" class="userbg"></div>
           <div class="grid" id="grid"></div>
           <div class="credit" id="credit"></div>
-          <svg id="deco" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 794 1123" preserveAspectRatio="none"></svg>
+          <svg id="deco" class="deco" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 794 1123" preserveAspectRatio="none"></svg>
         </div>
       </div>
     </div>
   </section>
 </div>
+
+<div class="printstack" id="printStack" aria-hidden="true"></div>
 
 <script>
 /* ====================================================================
@@ -799,7 +880,8 @@ var ACTIVE = "anniversary";
     return { header:CONFIG.defaultHeader, font:"round", maker:"해누리중학교 조승재",
       useBg:true, templateId:defaultTplId(), layout:"six", from:"", date:"", bgOpacity:0.5,
       paper:"a4p", deco:{items:[]}, exportQuality:"standard", sheetBg:false,
-      letters: Array.from({length:COUNT}, function(){ return {to:"", body:"", ps:""}; }) };
+      imp: { raw:"", map:{to:-1, from:-1, msg:-1}, rows:[], page:0 },
+      letters: Array.from({length:COUNT}, function(){ return {to:"", body:"", ps:"", from:""}; }) };
   }
 
   var state = load();
@@ -810,8 +892,9 @@ var ACTIVE = "anniversary";
       if(!raw) return blank();
       var s = JSON.parse(raw);
       if(!s || !Array.isArray(s.letters)) return blank();
-      while(s.letters.length < COUNT) s.letters.push({to:"",body:"",ps:""});
+      while(s.letters.length < COUNT) s.letters.push({to:"",body:"",ps:"",from:""});
       s.letters = s.letters.slice(0, COUNT);
+      s.letters.forEach(function(x){ if(typeof x.from !== "string") x.from = ""; });
       if(typeof s.header !== "string") s.header = CONFIG.defaultHeader;
       if(typeof s.maker !== "string") s.maker = "해누리중학교 조승재";
       if(typeof s.from !== "string") s.from = "";
@@ -826,6 +909,11 @@ var ACTIVE = "anniversary";
       if(!EXPORT_Q[s.exportQuality]) s.exportQuality = "standard";
       if(typeof s.sheetBg !== "boolean") s.sheetBg = false;
       if(s.templateId == null || !getTemplate(s.templateId)) s.templateId = defaultTplId();
+      if(!s.imp || typeof s.imp !== "object") s.imp = { raw:"", map:{to:-1,from:-1,msg:-1}, rows:[], page:0 };
+      if(typeof s.imp.raw !== "string") s.imp.raw = "";
+      if(!s.imp.map || typeof s.imp.map !== "object") s.imp.map = {to:-1, from:-1, msg:-1};
+      if(!Array.isArray(s.imp.rows)) s.imp.rows = [];
+      if(typeof s.imp.page !== "number" || !isFinite(s.imp.page) || s.imp.page < 0) s.imp.page = 0;
       /* 1회 전환: 예전 기본(SVG 클로버)으로 저장돼 있던 lucky 사용자를 '내 이미지'로 (편지 내용은 보존) */
       if(CONFIG.storageKey==="lucky_letter_maker_v1" && !s._imgDefault){
         if(s.templateId==="clover"){ var _id=defaultTplId(); var _t=getTemplate(_id); if(_t && _t.images) s.templateId=_id; }
@@ -856,11 +944,11 @@ var ACTIVE = "anniversary";
     var inp=document.querySelector('#cards input[data-i="'+i+'"][data-k="ps"]');
     if(inp) inp.value=q;
   }
-  function rollOne(i){ setPS(i, pickQuote(state.letters[i]?state.letters[i].ps:"")); save(); renderCell(i); }
+  function rollOne(i){ setPS(i, pickQuote(state.letters[i]?state.letters[i].ps:"")); writeBack(i); save(); renderCell(i); }
   function rollAll(){
     var pool=POOL.slice();
     for(var a=pool.length-1;a>0;a--){ var b=Math.floor(Math.random()*(a+1)); var t=pool[a]; pool[a]=pool[b]; pool[b]=t; }
-    for(var i=0;i<COUNT;i++){ setPS(i, pool[i % pool.length]); }
+    for(var i=0;i<COUNT;i++){ setPS(i, pool[i % pool.length]); writeBack(i); }
     save(); renderAll();
   }
 
@@ -903,10 +991,20 @@ var ACTIVE = "anniversary";
       var Lr=state.letters[i];
       var card=document.createElement("div");
       card.className="card";
+      var gi = impOn() ? (state.imp.page*n + i) : -1;
+      var tot = impOn() ? state.imp.rows.length : 0;
+      var hasRow = (gi>=0 && gi<tot);
+      var numTxt = hasRow ? String(gi+1) : String(i+1);
+      var labTxt = impOn() ? (hasRow ? (gi+1)+" / "+tot+"번째 응답" : "빈 칸") : (i+1)+"번 편지";
+      var fromRow = impOn()
+        ? '<div class="row"><span>보내는 사람 (From.)</span>'+
+            '<input type="text" data-i="'+i+'" data-k="from" placeholder="예) ○○이 어머니" value="'+esc(Lr.from||"")+'"></div>'
+        : '';
       card.innerHTML=
-        '<div class="head"><div class="num">'+(i+1)+'</div><div class="lab">'+(i+1)+'번 편지</div></div>'+
+        '<div class="head"><div class="num">'+esc(numTxt)+'</div><div class="lab">'+esc(labTxt)+'</div></div>'+
         '<div class="row"><span>받는 사람 (To.)</span>'+
           '<input type="text" data-i="'+i+'" data-k="to" placeholder="받는 사람 이름" value="'+esc(Lr.to)+'"></div>'+
+        fromRow +
         '<div class="row"><span>편지 내용</span>'+
           '<textarea data-i="'+i+'" data-k="body" placeholder="따뜻한 마음을 적어주세요. 줄바꿈도 그대로 반영돼요.">'+esc(Lr.body)+'</textarea></div>'+
         '<div class="row"><span>추신 (PS.) · 선택</span>'+
@@ -964,7 +1062,7 @@ var ACTIVE = "anniversary";
       box.addEventListener("input", function(e){
         var t=e.target, i=t.getAttribute("data-i"), k=t.getAttribute("data-k");
         if(i==null||k==null) return;
-        state.letters[+i][k]=t.value; save(); renderCell(+i);
+        state.letters[+i][k]=t.value; writeBack(+i); save(); renderCell(+i);
       });
       box.addEventListener("click", function(e){
         var d=e.target.closest ? e.target.closest(".dice") : null;
@@ -973,7 +1071,9 @@ var ACTIVE = "anniversary";
 
       optHeader.addEventListener("input", function(){ state.header=optHeader.value; save(); renderAll(); });
       if(optLayout) optLayout.addEventListener("change", function(){
-        state.layout = LAYOUT[optLayout.value] ? optLayout.value : "six"; save(); buildEditor(); renderAll();
+        state.layout = LAYOUT[optLayout.value] ? optLayout.value : "six";
+        if(impOn()){ clampPage(); loadPage(state.imp.page); refreshPageUI(); }
+        save(); buildEditor(); renderAll();
       });
       if(optPaper) optPaper.addEventListener("change", function(){
         state.paper = PAPERS[optPaper.value] ? optPaper.value : "a4p"; save(); applyPaper();
@@ -1029,7 +1129,7 @@ var ACTIVE = "anniversary";
   function copyAll(){
     if(window.confirm && !window.confirm("1번 편지의 '내용'과 '추신'을 전체 편지에 복사할까요? (받는 사람 이름은 그대로 둡니다)")) return;
     var src=state.letters[0];
-    for(var i=0;i<state.letters.length;i++){ state.letters[i].body=src.body; state.letters[i].ps=src.ps; }
+    for(var i=0;i<state.letters.length;i++){ state.letters[i].body=src.body; state.letters[i].ps=src.ps; writeBack(i); }
     save(); buildEditor(); renderAll();
   }
 
@@ -1041,6 +1141,10 @@ var ACTIVE = "anniversary";
   }
 
   function cellHTML(Lr){
+    /* 폼 응답 수합 중 남는 칸은 빈 편지지로 (인쇄에 안내문구가 찍히지 않도록) */
+    if(impOn() && !(Lr.to||"").trim() && !(Lr.body||"").trim() && !(Lr.ps||"").trim() && !(Lr.from||"").trim()){
+      return '<div class="content"></div>';
+    }
     var header = esc(state.header || CONFIG.defaultHeader);
     var heart  = esc(CONFIG.heart || "♥");
     var name   = (Lr.to && Lr.to.trim()) ? '<span class="name">'+esc(Lr.to)+'</span>' : '<span class="ph">○○</span>';
@@ -1048,7 +1152,8 @@ var ACTIVE = "anniversary";
     var body   = '<div class="body'+(bodyEmpty?' ph':'')+'">'+esc(bodyEmpty ? "이곳에 마음을 적어주세요 :)" : Lr.body)+'</div>';
     var ps     = (Lr.ps && Lr.ps.trim()) ? '<div class="ps">PS. '+esc(Lr.ps)+'</div>' : '';
     var date   = (state.date && state.date.trim()) ? '<div class="date">'+esc(state.date)+'</div>' : '';
-    var from   = (state.from && state.from.trim()) ? '<div class="from">From. '+esc(state.from)+'</div>' : '';
+    var fromV  = (Lr.from && Lr.from.trim()) ? Lr.from : state.from;
+    var from   = (fromV && fromV.trim()) ? '<div class="from">From. '+esc(fromV)+'</div>' : '';
     return '<div class="content">'+
              '<div class="title">'+header+' <span class="hh">'+heart+'</span></div>'+ date +
              '<div class="to">To. '+name+'</div>'+ body + ps + from +
@@ -1158,6 +1263,234 @@ var ACTIVE = "anniversary";
   }
 
   /* ---------- 버튼 ---------- */
+  /* ====================================================================
+     폼 응답 수합 — 구글폼 · MS Forms 응답 표를 편지 칸으로
+     ==================================================================== */
+  function $id(id){ return document.getElementById(id); }
+
+  function splitRow(line, delim){
+    if(delim!==",") return line.split(delim);
+    /* 쉼표 구분 + 따옴표 안 쉼표 보호 */
+    var out=[], cur="", q=false;
+    for(var i=0;i<line.length;i++){
+      var ch=line[i];
+      if(ch==='"'){ if(q && line[i+1]==='"'){ cur+='"'; i++; } else q=!q; }
+      else if(ch==="," && !q){ out.push(cur); cur=""; }
+      else cur+=ch;
+    }
+    out.push(cur);
+    return out;
+  }
+  function parseTable(text){
+    var lines = String(text||"").replace(/\r/g,"").split("\n").filter(function(l){ return l.trim()!==""; });
+    if(!lines.length) return {header:[], rows:[]};
+    var delim = lines[0].indexOf("\t")>=0 ? "\t" : (lines[0].indexOf(",")>=0 ? "," : "\t");
+    var grid = lines.map(function(l){ return splitRow(l, delim).map(function(c){ return c.trim(); }); });
+    return {header:grid[0], rows:grid.slice(1)};
+  }
+  /* 키워드 우선순위대로 열을 찾음 (앞쪽 키워드가 이김) */
+  function guessCol(header, keys, exclude){
+    for(var j=0;j<keys.length;j++){
+      for(var i=0;i<header.length;i++){
+        if(exclude && exclude.indexOf(i)>=0) continue;
+        if(String(header[i]).toLowerCase().indexOf(keys[j])>=0) return i;
+      }
+    }
+    return -1;
+  }
+
+  function impOn(){ return !!(state.imp && state.imp.rows && state.imp.rows.length); }
+  function pageSize(){ return L().count; }
+  function pageCount(){ return impOn() ? Math.max(1, Math.ceil(state.imp.rows.length/pageSize())) : 1; }
+  function clampPage(){
+    var pc=pageCount();
+    if(state.imp.page > pc-1) state.imp.page = pc-1;
+    if(state.imp.page < 0) state.imp.page = 0;
+  }
+  /* 응답 목록 -> 편지 칸 */
+  function loadPage(p){
+    var n=pageSize(), rows=state.imp.rows;
+    for(var i=0;i<COUNT;i++){
+      var r = (i<n) ? rows[p*n+i] : null;
+      state.letters[i] = r ? {to:r.to||"", body:r.msg||"", ps:r.ps||"", from:r.from||""}
+                           : {to:"", body:"", ps:"", from:""};
+    }
+  }
+  /* 편지 칸에서 고친 내용 -> 응답 목록 (쪽을 넘겨도 유지) */
+  function writeBack(i){
+    if(!impOn() || i>=pageSize()) return;
+    var r = state.imp.rows[state.imp.page*pageSize()+i];
+    if(!r) return;
+    var Lr = state.letters[i];
+    r.to = Lr.to||""; r.msg = Lr.body||""; r.ps = Lr.ps||""; r.from = Lr.from||"";
+  }
+
+  function fillSelect(sel, header, allowNone, selectedIdx){
+    if(!sel) return;
+    sel.innerHTML="";
+    if(allowNone){ var o=document.createElement("option"); o.value="-1"; o.textContent="(없음)"; sel.appendChild(o); }
+    header.forEach(function(h,i){
+      var op=document.createElement("option"); op.value=String(i);
+      op.textContent="["+(i+1)+"] "+(h||("열"+(i+1))); sel.appendChild(op);
+    });
+    sel.value=String(selectedIdx);
+  }
+  function refreshMapOptions(){
+    var t=parseTable(state.imp.raw), header=t.header, info=$id("parseInfo");
+    if(!header.length){
+      ["mapTo","mapFrom","mapMsg"].forEach(function(id){
+        var el=$id(id); if(el) el.innerHTML='<option value="-1">(표를 붙여넣어 주세요)</option>';
+      });
+      if(info) info.textContent="";
+      return t;
+    }
+    var m=state.imp.map;
+    if(m.to<0)   m.to   = guessCol(header, ["받는","대상","누구","학생","자녀","아이","to"], null);
+    if(m.from<0) m.from = guessCol(header, ["보내","보호자","학부모","어머","아버","작성","성함","from","이름","성명","닉네임"], [m.to]);
+    if(m.msg<0)  m.msg  = guessCol(header, ["하고 싶","내용","메시지","응원","한마디","편지","message","글"], [m.to, m.from]);
+    if(m.msg<0)  m.msg  = header.length-1;
+    fillSelect($id("mapTo"),   header, true,  m.to);
+    fillSelect($id("mapFrom"), header, true,  m.from);
+    fillSelect($id("mapMsg"),  header, false, Math.max(0, m.msg));
+    if(info) info.innerHTML = "표 인식: <b>"+t.rows.length+"</b>개 응답 · <b>"+header.length+"</b>개 열";
+    return t;
+  }
+
+  function pageLabel(p){
+    var n=pageSize(), rows=state.imp.rows, names=[];
+    for(var i=0;i<n;i++){ var r=rows[p*n+i]; if(r && (r.to||"").trim()) names.push(r.to.trim()); }
+    var txt = names.length ? names[0] : "(이름 없음)";
+    if(names.length>1) txt += " 외 "+(names.length-1)+"명";
+    return (p+1)+"쪽 · "+txt;
+  }
+  function refreshPageUI(){
+    var nav=$id("impNav"), sel=$id("impPage");
+    if(!nav || !sel) return;
+    if(!impOn()){ nav.hidden=true; sel.innerHTML=""; return; }
+    nav.hidden=false;
+    clampPage();
+    var pc=pageCount(), html="";
+    for(var p=0;p<pc;p++) html += '<option value="'+p+'">'+esc(pageLabel(p))+'</option>';
+    sel.innerHTML=html; sel.value=String(state.imp.page);
+    var pv=$id("btnImpPrev"), nx=$id("btnImpNext"), pa=$id("btnPrintAll");
+    if(pv) pv.disabled = (state.imp.page<=0);
+    if(nx) nx.disabled = (state.imp.page>=pc-1);
+    if(pa) pa.textContent = "\uD83D\uDDA8\uFE0F 전체 연속 인쇄 ("+pc+"쪽)";
+  }
+  function gotoPage(p){
+    if(!impOn()) return;
+    state.imp.page = p; clampPage(); loadPage(state.imp.page);
+    save(); buildEditor(); renderAll(); refreshPageUI();
+  }
+
+  function applyImport(){
+    var t=refreshMapOptions();
+    if(!t.header.length || !t.rows.length){
+      if(window.alert) window.alert("붙여넣은 표에서 응답을 찾지 못했어요.\n제목 줄을 포함해 표 전체를 복사해 붙여넣어 주세요.");
+      return;
+    }
+    var m=state.imp.map, rows=[];
+    t.rows.forEach(function(r){
+      var msg = (m.msg>=0  ? (r[m.msg]||"")  : "").trim();
+      var to  = (m.to>=0   ? (r[m.to]||"")   : "").trim();
+      var fr  = (m.from>=0 ? (r[m.from]||"") : "").trim();
+      if(!msg && !to) return;
+      rows.push({to:to, from:fr, msg:msg, ps:""});
+    });
+    if(!rows.length){
+      if(window.alert) window.alert("내용이 있는 응답이 없어요. 열 지정을 확인해 주세요.");
+      return;
+    }
+    var dirty=false;
+    for(var i=0;i<state.letters.length;i++){
+      if((state.letters[i].body||"").trim() || (state.letters[i].to||"").trim()){ dirty=true; break; }
+    }
+    if(dirty && window.confirm && !window.confirm("지금 편지 칸에 적힌 내용을 폼 응답 "+rows.length+"개로 바꿉니다. 계속할까요?")) return;
+    state.imp.rows=rows; state.imp.page=0;
+    loadPage(0); save(); buildEditor(); renderAll(); refreshPageUI();
+  }
+  function clearImport(){
+    if(window.confirm && !window.confirm("붙여넣은 폼 응답을 지울까요? (편지 칸에 채워진 내용은 그대로 남습니다)")) return;
+    state.imp = { raw:"", map:{to:-1, from:-1, msg:-1}, rows:[], page:0 };
+    var pa=$id("pasteArea"); if(pa) pa.value="";
+    save(); refreshMapOptions(); refreshPageUI(); buildEditor();
+  }
+
+  /* 응답 전체를 한 번의 인쇄로 (쪽마다 시트 한 장) */
+  function printAll(){
+    if(!impOn()) return;
+    var stack=$id("printStack"), sheet=$id("sheet");
+    if(!stack || !sheet) return;
+    var pc=pageCount();
+    if(window.confirm && !window.confirm("응답 "+state.imp.rows.length+"개를 "+pc+"쪽으로 이어서 인쇄합니다.\n인쇄 창에서 '배경 그래픽'을 켜 주세요. 계속할까요?")) return;
+    var keepLetters=JSON.parse(JSON.stringify(state.letters));
+    var keepPage=state.imp.page;
+    stack.innerHTML="";
+    for(var p=0;p<pc;p++){
+      loadPage(p); renderAll();
+      var c=sheet.cloneNode(true);
+      c.removeAttribute("id");
+      var kids=c.querySelectorAll("[id]");
+      for(var k=0;k<kids.length;k++) kids[k].removeAttribute("id");
+      c.style.transform="none";
+      stack.appendChild(c);
+    }
+    state.letters=keepLetters; state.imp.page=keepPage;
+    buildEditor(); renderAll(); refreshPageUI();
+    document.body.classList.add("batch");
+    batchArmed=true;
+    setTimeout(function(){ if(typeof window.print==="function") window.print(); }, 80);
+  }
+  var batchArmed=false;
+  function endBatch(){
+    batchArmed=false;
+    if(!document.body.classList.contains("batch")) return;
+    document.body.classList.remove("batch");
+    var stack=$id("printStack"); if(stack) stack.innerHTML="";
+  }
+
+  function setupImport(){
+    var pa=$id("pasteArea");
+    if(pa){
+      pa.value = state.imp.raw || "";
+      pa.addEventListener("input", function(){
+        state.imp.raw = pa.value;
+        state.imp.map = {to:-1, from:-1, msg:-1};   /* 표가 바뀌면 열 추정을 다시 */
+        save(); refreshMapOptions();
+      });
+    }
+    [["mapTo","to"],["mapFrom","from"],["mapMsg","msg"]].forEach(function(pair){
+      var el=$id(pair[0]); if(!el) return;
+      el.addEventListener("change", function(){
+        var v=parseInt(el.value,10); state.imp.map[pair[1]] = isFinite(v) ? v : -1; save();
+      });
+    });
+    var tg=$id("btnImpToggle"), body=$id("impBody");
+    if(tg && body){
+      tg.addEventListener("click", function(){
+        var open = body.hidden;
+        body.hidden = !open;
+        tg.setAttribute("aria-expanded", open ? "true" : "false");
+        tg.textContent = open ? "접기" : "펼치기";
+      });
+    }
+    var ap=$id("btnImpApply");  if(ap) ap.addEventListener("click", applyImport);
+    var cl=$id("btnImpClear");  if(cl) cl.addEventListener("click", clearImport);
+    var pv=$id("btnImpPrev");   if(pv) pv.addEventListener("click", function(){ gotoPage(state.imp.page-1); });
+    var nx=$id("btnImpNext");   if(nx) nx.addEventListener("click", function(){ gotoPage(state.imp.page+1); });
+    var sl=$id("impPage");      if(sl) sl.addEventListener("change", function(){ gotoPage(parseInt(sl.value,10)||0); });
+    var pl=$id("btnPrintAll");  if(pl) pl.addEventListener("click", printAll);
+    /* 연속 인쇄가 아닌 일반 인쇄라면 남아 있던 시트 더미를 먼저 치운다 */
+    window.addEventListener("beforeprint", function(){ if(!batchArmed) endBatch(); });
+    window.addEventListener("afterprint", endBatch);
+
+    refreshMapOptions();
+    refreshPageUI();
+    if(impOn() && body && body.hidden && tg){   /* 이어서 작업 중이면 펼쳐둠 */
+      body.hidden=false; tg.textContent="접기"; tg.setAttribute("aria-expanded","true");
+    }
+  }
+
   function bindButtons(){
     var p=document.getElementById("btnPrint");
     if(p) p.addEventListener("click", function(){ if(typeof window.print==="function") window.print(); });
@@ -1165,6 +1498,12 @@ var ACTIVE = "anniversary";
     if(r) r.addEventListener("click", function(){ rollAll(); });
     var c=document.getElementById("btnClear");
     if(c) c.addEventListener("click", function(){
+      if(impOn()){
+        if(window.confirm && !window.confirm("폼 응답 수합을 끝내고 편지 칸을 모두 비울까요?\n(붙여넣은 표는 그대로 있어서 다시 채울 수 있어요)")) return;
+        state.imp.rows = []; state.imp.page = 0;
+        state.letters = blank().letters; save(); buildEditor(); renderAll(); refreshPageUI();
+        return;
+      }
       if(window.confirm && !window.confirm("작성한 편지 내용을 모두 지울까요? (머리말·배치·글씨체·템플릿·제작자는 유지돼요)")) return;
       state.letters = blank().letters; save(); buildEditor(); renderAll();
     });
@@ -1177,7 +1516,7 @@ var ACTIVE = "anniversary";
   function updatePrintStyle(){
     if(!printStyleEl){ printStyleEl=document.createElement("style"); printStyleEl.id="printStyleEl"; document.head.appendChild(printStyleEl); }
     var p=paper();
-    printStyleEl.textContent="@media print{ @page{ size:"+p.w+"mm "+p.h+"mm; margin:0; } #sheet{ width:"+p.w+"mm !important; height:"+p.h+"mm !important; } }";
+    printStyleEl.textContent="@media print{ @page{ size:"+p.w+"mm "+p.h+"mm; margin:0; } .sheet{ width:"+p.w+"mm !important; height:"+p.h+"mm !important; } }";
   }
   function applyPaper(){
     var p=paper();
@@ -1401,6 +1740,7 @@ var ACTIVE = "anniversary";
     applyPaper();      /* 용지 px + 그리드 + 인쇄크기 + renderAll/renderDeco */
     applyTemplate();   /* 테마색 + 시트패턴 + renderAll */
     bindButtons();
+    setupImport();
     updateScale();
 
     if(typeof window.ResizeObserver==="function"){ new ResizeObserver(updateScale).observe(document.getElementById("stage")); }
@@ -1413,6 +1753,6 @@ var ACTIVE = "anniversary";
   if(document.readyState==="loading"){ document.addEventListener("DOMContentLoaded", init); } else { init(); }
 })();
 </script>
-<footer id="app-credit" style="width:100%;box-sizing:border-box;margin:2.5rem 0 0;padding:14px 12px;text-align:center;font-size:12.5px;line-height:1.6;color:#8a8f98;font-family:system-ui,-apple-system,'Segoe UI','Malgun Gothic',sans-serif;border-top:1px solid rgba(128,128,128,.25);">© 2026 조승재(과학이조선생) · 해누리중학교 · All rights reserved<br><span style="font-size:11px;opacity:.85;">최종 업데이트: 2026-08-30</span></footer>
+<footer id="app-credit" style="width:100%;box-sizing:border-box;margin:2.5rem 0 0;padding:14px 12px;text-align:center;font-size:12.5px;line-height:1.6;color:#8a8f98;font-family:system-ui,-apple-system,'Segoe UI','Malgun Gothic',sans-serif;border-top:1px solid rgba(128,128,128,.25);">© 2026 조승재(과학이조선생) · 해누리중학교 · All rights reserved<br><span style="font-size:11px;opacity:.85;">최종 업데이트: 2026-09-09</span></footer>
 </body>
 </html>
