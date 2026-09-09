@@ -152,7 +152,7 @@
     box-shadow:inset 0 1px 5px rgba(0,0,0,.04);
   }
   #frame{ position:relative; margin:0 auto; }
-  #sheet{
+  .sheet{
     position:absolute; top:0; left:0;
     width:794px; height:1123px;
     background-color:var(--paper);
@@ -162,7 +162,7 @@
     display:flex; flex-direction:column;
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
-  #sheet .sheet-inner{
+  .sheet .sheet-inner{
     position:relative; z-index:1; flex:1 1 auto; min-height:0;
     display:flex; flex-direction:column; padding:34px 34px 12px;
   }
@@ -197,15 +197,15 @@
     position:absolute; top:-3px; left:50%; transform:translateX(-50%);
     width:12px; height:12px; border-radius:50%; background:rgba(0,0,0,.14);
   }
-  #sheet .credit{
+  .sheet .credit{
     position:relative; z-index:1; flex:0 0 auto;
     text-align:center; padding:0 20px 14px;
     font-family:'Pretendard', sans-serif; font-weight:600; letter-spacing:.4px;
     color:var(--accent-d); font-size:12.5px;
     -webkit-print-color-adjust:exact; print-color-adjust:exact;
   }
-  #sheet .credit.hide{ display:none; }
-  #sheet .credit .cv{
+  .sheet .credit.hide{ display:none; }
+  .sheet .credit .cv{
     display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--accent);
     vertical-align:1px; margin:0 9px; opacity:.55;
   }
@@ -213,6 +213,9 @@
     grid-column:1/-1; text-align:center; color:#b7b3a6; font-family:var(--body-font);
     padding:60px 20px; font-size:1.3em;
   }
+
+  /* ===== 전체 연속 인쇄용 시트 더미 (화면에서는 숨김) ===== */
+  .printstack{ display:none; }
 
   @media print{
     @page{ size:A4; margin:0; }
@@ -224,7 +227,12 @@
     .preview .toptools{ display:none !important; }
     .stage{ background:#fff !important; border:none !important; padding:0 !important; box-shadow:none !important; overflow:visible !important; }
     #frame{ width:auto !important; height:auto !important; margin:0 !important; }
-    #sheet{ position:static !important; transform:none !important; box-shadow:none !important; margin:0 !important; }
+    .sheet{ position:static !important; transform:none !important; box-shadow:none !important; margin:0 !important; }
+    /* 전체 연속 인쇄: 미리보기 대신 시트 더미를 한 장씩 */
+    body.batch .preview{ display:none !important; }
+    body.batch .printstack{ display:block !important; }
+    .printstack .sheet{ overflow:hidden; break-after:page; page-break-after:always; }
+    .printstack .sheet:last-child{ break-after:auto; page-break-after:auto; }
   }
 </style>
 </head>
@@ -365,6 +373,7 @@
         </div>
         <div class="paste-actions">
           <button class="btn primary" id="btnParse" type="button">📥 표 읽어서 채우기</button>
+          <button class="btn primary" id="btnPrintAll" type="button" hidden>🖨️ 전체 연속 인쇄</button>
           <button class="btn warn" id="btnClearPaste" type="button">붙여넣기 지우기</button>
           <span class="parse-info" id="parseInfo"></span>
         </div>
@@ -372,7 +381,8 @@
       <p class="hint">
         💡 폼은 문항을 <b>받는 사람 · (보내는) 이름 · 하고 싶은 말</b> 3개로 만들면 딱 맞아요. 익명으로 하려면 ‘이름’ 문항을 빼면 됩니다.<br>
         📊 응답을 <b>엑셀/구글시트로 열어</b> 표 전체(제목 줄 포함)를 드래그·복사한 뒤 위에 붙여넣고 <b>표 읽어서 채우기</b>를 누르세요.<br>
-        👤 ‘받는 사람 열’을 지정하면 <b>대상마다 한 장씩</b> 만들 수 있어요. <b>‘전체 한 장’</b>을 고르면 모든 메시지가 한 장에 모여요.
+        👤 ‘받는 사람 열’을 지정하면 <b>대상마다 한 장씩</b> 만들 수 있어요. <b>‘전체 한 장’</b>을 고르면 모든 메시지가 한 장에 모여요.<br>
+        🖨️ <b>전체 연속 인쇄</b>를 누르면 대상 전원을 <b>한 번의 인쇄</b>로 한 장씩 뽑을 수 있어요. (한 명씩 골라 인쇄하지 않아도 됩니다)
       </p>
     </div>
 
@@ -389,7 +399,7 @@
     </div>
     <div class="stage" id="stage">
       <div id="frame">
-        <div id="sheet">
+        <div id="sheet" class="sheet">
           <div class="sheet-inner">
             <div class="rp-title" id="rpTitle"></div>
             <div class="rp-grid" id="rpGrid"></div>
@@ -400,6 +410,8 @@
     </div>
   </section>
 </div>
+
+<div class="printstack" id="printStack" aria-hidden="true"></div>
 
 <script>
 (function(){
@@ -566,6 +578,7 @@
     $("tabImport").classList.toggle("on", m==="import");
     $("paneDirect").classList.toggle("on", m==="direct");
     $("paneImport").classList.toggle("on", m==="import");
+    updateBatchBtn();
     renderPreview();
   }
   $("tabDirect").addEventListener("click", function(){ setMode("direct"); });
@@ -666,6 +679,7 @@
     });
     if(list.indexOf(state.target)<0 && state.target!=="__ALL__") state.target="__ALL__";
     sel.value=state.target;
+    updateBatchBtn();
   }
   ["mapTo","mapFrom","mapMsg"].forEach(function(id){
     var keyMap={mapTo:"to",mapFrom:"from",mapMsg:"msg"};
@@ -782,17 +796,64 @@
   window.addEventListener("resize", fitSheet);
 
   // ---------- 상단 버튼 ----------
-  $("btnPrint").addEventListener("click", function(){
+  function applyPrintPageStyle(){
     var p=PAPERS[state.paper]||PAPERS.a4p;
     var land = p.w>p.h;
     var size = (state.paper.charAt(1)==="3") ? "A3" : "A4";
-    // @page 크기 동적 지정
     var st=document.getElementById("printPageStyle");
     if(!st){ st=document.createElement("style"); st.id="printPageStyle"; document.head.appendChild(st); }
     st.textContent="@media print{ @page{ size:"+size+(land?" landscape":" portrait")+"; margin:0; } "+
-      "#sheet{ width:"+p.w+"px !important; height:"+p.h+"px !important; } }";
+      ".sheet{ width:"+p.w+"px !important; height:"+p.h+"px !important; } }";
+  }
+  $("btnPrint").addEventListener("click", function(){
+    applyPrintPageStyle();
     window.print();
   });
+
+  /* ---------- 대상 전원을 한 번의 인쇄로 ---------- */
+  var batchArmed=false;
+  function endBatch(){
+    batchArmed=false;
+    if(!document.body.classList.contains("batch")) return;
+    document.body.classList.remove("batch");
+    var stack=$("printStack"); if(stack) stack.innerHTML="";
+  }
+  function updateBatchBtn(){
+    var b=$("btnPrintAll"); if(!b) return;
+    var list = (state.mode==="import") ? uniqueTargets() : [];
+    b.hidden = !list.length;
+    b.textContent = "\uD83D\uDDA8\uFE0F 전체 연속 인쇄 ("+list.length+"명)";
+  }
+  function printAllTargets(){
+    var list=uniqueTargets();
+    if(!list.length) return;
+    var stack=$("printStack"), sheet=$("sheet");
+    if(!stack || !sheet) return;
+    if(!confirm("대상 "+list.length+"명의 롤링페이퍼를 "+list.length+"장으로 이어서 인쇄합니다.\n인쇄 창에서 '배경 그래픽'을 켜 주세요. 계속할까요?")) return;
+    var keep=state.target;
+    stack.innerHTML="";
+    applyPrintPageStyle();
+    list.forEach(function(nm){
+      state.target=nm;
+      renderPreview();
+      var c=sheet.cloneNode(true);
+      c.removeAttribute("id");
+      var kids=c.querySelectorAll("[id]");
+      for(var k=0;k<kids.length;k++) kids[k].removeAttribute("id");
+      c.style.transform="none";
+      stack.appendChild(c);
+    });
+    state.target=keep;
+    var sel=$("optTarget"); if(sel) sel.value=keep;
+    renderPreview();
+    document.body.classList.add("batch");
+    batchArmed=true;
+    setTimeout(function(){ window.print(); }, 80);
+  }
+  $("btnPrintAll").addEventListener("click", printAllTargets);
+  /* 연속 인쇄가 아닌 일반 인쇄라면 남아 있던 시트 더미를 먼저 치운다 */
+  window.addEventListener("beforeprint", function(){ if(!batchArmed) endBatch(); });
+  window.addEventListener("afterprint", endBatch);
   $("btnClear").addEventListener("click", function(){
     if(!confirm("입력한 내용을 모두 지울까요? (되돌릴 수 없어요)")) return;
     state=blank();
@@ -813,6 +874,6 @@
   setTimeout(fitSheet, 60);
 })();
 </script>
-<footer id="app-credit" style="width:100%;box-sizing:border-box;margin:2.5rem 0 0;padding:14px 12px;text-align:center;font-size:12.5px;line-height:1.6;color:#8a8f98;font-family:system-ui,-apple-system,'Segoe UI','Malgun Gothic',sans-serif;border-top:1px solid rgba(128,128,128,.25);">© 2026 조승재(과학이조선생) · 해누리중학교 · All rights reserved<br><span style="font-size:11px;opacity:.85;">최종 업데이트: 2026-08-30</span></footer>
+<footer id="app-credit" style="width:100%;box-sizing:border-box;margin:2.5rem 0 0;padding:14px 12px;text-align:center;font-size:12.5px;line-height:1.6;color:#8a8f98;font-family:system-ui,-apple-system,'Segoe UI','Malgun Gothic',sans-serif;border-top:1px solid rgba(128,128,128,.25);">© 2026 조승재(과학이조선생) · 해누리중학교 · All rights reserved<br><span style="font-size:11px;opacity:.85;">최종 업데이트: 2026-09-09</span></footer>
 </body>
 </html>
