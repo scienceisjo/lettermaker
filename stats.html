@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>📊 편지 만들기 — 방문 통계</title>
+
+<link rel="stylesheet" as="style" crossorigin
+  href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --cream:#fffdf6; --ink:#33402b; --muted:#7a8470; --faint:#aeb6a2; --line:#ece5da;
+    --accent:#3a9d23; --tint:#e7f3e1; --bar:#3a9d23; --bar-soft:#bfe0b3; --grid:#efe9de;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Pretendard', -apple-system, sans-serif; color:var(--ink); min-height:100vh;
+    display:flex; flex-direction:column; background-color:var(--cream);
+    background-image:
+      radial-gradient(1100px 480px at 85% -8%, #eef6e7 0%, transparent 60%),
+      radial-gradient(900px 420px at -5% 108%, #fdeef0 0%, transparent 55%),
+      radial-gradient(#ece6da 1.1px, transparent 1.1px);
+    background-size:auto, auto, 22px 22px;
+  }
+  .wrap{ width:100%; max-width:960px; margin:0 auto; padding:36px 20px 20px; flex:1; }
+
+  header{ display:flex; align-items:flex-end; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
+  header .kicker{ font-size:.76rem; font-weight:800; letter-spacing:.2em; color:#9aa48d; text-transform:uppercase; }
+  header h1{ font-family:'Jua', sans-serif; font-weight:400; font-size:clamp(1.5rem,4vw,2.1rem); margin:4px 0 0; color:#2f3b28; }
+  header h1 .em{ color:var(--accent); }
+  header a.back{ color:var(--muted); text-decoration:none; font-size:.9rem; font-weight:700; }
+  header a.back:hover{ color:var(--accent); }
+
+  .card{
+    background:#fff; border:1px solid var(--line); border-radius:18px; padding:18px 20px;
+    box-shadow:0 10px 26px rgba(60,50,30,.06), 0 2px 6px rgba(0,0,0,.03); margin-bottom:16px;
+  }
+  .card h2{ font-family:'Jua', sans-serif; font-weight:400; font-size:1.12rem; margin:0 0 12px; color:#2f3b28; display:flex; align-items:baseline; gap:8px; }
+  .card h2 small{ font-family:'Pretendard',sans-serif; font-size:.8rem; color:var(--faint); font-weight:600; }
+
+  .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  input[type=text]{
+    font:inherit; font-size:1rem; letter-spacing:.12em; text-transform:uppercase; padding:10px 12px;
+    border:1.5px solid var(--line); border-radius:12px; background:#fffdf9; color:var(--ink); min-width:190px; outline:none;
+  }
+  input[type=text]:focus{ border-color:var(--accent); }
+  select{ font:inherit; padding:10px 12px; border:1.5px solid var(--line); border-radius:12px; background:#fffdf9; color:var(--ink); }
+  .btn{
+    font:inherit; font-weight:800; padding:10px 18px; border-radius:12px; border:0; cursor:pointer;
+    background:var(--accent); color:#fff; transition:.15s;
+  }
+  .btn:hover{ filter:brightness(1.06); transform:translateY(-1px); }
+  .btn:disabled{ opacity:.55; cursor:default; transform:none; }
+  .btn.ghost{ background:var(--tint); color:var(--accent); }
+  label.chk{ font-size:.88rem; color:var(--muted); display:flex; align-items:center; gap:6px; }
+  .msg{ font-size:.9rem; color:var(--muted); margin-top:10px; min-height:1.2em; }
+  .msg.err{ color:#c0392b; }
+  .msg.ok{ color:var(--accent); }
+
+  /* KPI */
+  .kpis{ display:grid; grid-template-columns:repeat(4, 1fr); gap:12px; }
+  .kpi{ background:#fff; border:1px solid var(--line); border-radius:16px; padding:14px 16px; }
+  .kpi .lab{ font-size:.8rem; font-weight:700; color:var(--muted); }
+  .kpi .val{ font-size:1.9rem; font-weight:800; letter-spacing:-.02em; margin-top:4px; font-variant-numeric:tabular-nums; }
+  .kpi.hero .val{ font-size:2.6rem; color:#2f3b28; }
+  .kpi .sub{ font-size:.8rem; color:var(--faint); margin-top:2px; }
+  @media (max-width:640px){ .kpis{ grid-template-columns:repeat(2, 1fr);} .kpi.hero .val{ font-size:2.1rem; } }
+
+  /* 일별 막대 */
+  .chart{ position:relative; }
+  .cols{ display:grid; align-items:end; gap:2px; height:170px; border-bottom:1px solid var(--grid); padding:0 2px; }
+  .col{ position:relative; height:100%; display:flex; align-items:flex-end; justify-content:center; cursor:default; }
+  .col .bar{ width:100%; max-width:24px; background:var(--bar); border-radius:4px 4px 0 0; min-height:0; transition:background .12s; }
+  .col:hover .bar{ background:#2c7d19; }
+  .col.today .bar{ background:#2c7d19; }
+  .xlab{ display:grid; gap:2px; padding:6px 2px 0; }
+  .xlab span{ font-size:.68rem; color:var(--faint); text-align:center; white-space:nowrap; overflow:hidden; }
+  .ylab{ position:absolute; right:0; top:-2px; font-size:.7rem; color:var(--faint); }
+  .tip{
+    position:absolute; pointer-events:none; background:#33402b; color:#fff; font-size:.8rem; padding:6px 10px; border-radius:9px;
+    white-space:nowrap; transform:translate(-50%, -110%); opacity:0; transition:opacity .12s; z-index:5;
+  }
+  .tip.show{ opacity:1; }
+  .empty{ color:var(--faint); font-size:.9rem; padding:18px 0; text-align:center; }
+
+  /* 표 */
+  table{ width:100%; border-collapse:collapse; font-size:.92rem; }
+  th{ text-align:left; font-size:.76rem; color:var(--faint); font-weight:700; padding:4px 6px; border-bottom:1px solid var(--line); }
+  td{ padding:7px 6px; border-bottom:1px solid #f4efe6; vertical-align:middle; }
+  tr:last-child td{ border-bottom:0; }
+  td.num, th.num{ text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  td.name{ white-space:nowrap; }
+  td.barcell{ width:42%; }
+  .hbar{ height:10px; background:var(--bar-soft); border-radius:0 4px 4px 0; }
+  .hbar.main{ background:var(--bar); }
+  .two{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:760px){ .two{ grid-template-columns:1fr; } }
+
+  .hours{ display:grid; grid-template-columns:repeat(24, 1fr); gap:2px; align-items:end; height:70px; border-bottom:1px solid var(--grid); }
+  .hours .col .bar{ max-width:18px; }
+  .hlab{ display:grid; grid-template-columns:repeat(24, 1fr); gap:2px; padding-top:4px; }
+  .hlab span{ font-size:.66rem; color:var(--faint); text-align:center; }
+
+  .note{ font-size:.82rem; color:var(--faint); line-height:1.6; }
+  #dash[hidden]{ display:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="kicker">Letter Studio · Stats</div>
+      <h1>💌 편지 만들기 <span class="em">방문 통계</span></h1>
+    </div>
+    <a class="back" href="index.html">← 편지 만들기 허브</a>
+  </header>
+
+  <section class="card">
+    <div class="row">
+      <input type="text" id="key" placeholder="관리 키 10자리" maxlength="10" autocomplete="off" spellcheck="false">
+      <select id="days">
+        <option value="14">최근 14일</option>
+        <option value="30" selected>최근 30일</option>
+        <option value="90">최근 90일</option>
+        <option value="365">최근 1년</option>
+      </select>
+      <button class="btn" id="go">📊 보기</button>
+      <label class="chk"><input type="checkbox" id="keep" checked> 이 기기에 키 기억</label>
+    </div>
+    <div class="msg" id="msg">관리 키는 Supabase 에서 <b>편지메이커_방문기록_SETUP.sql</b> 을 실행하면 결과창에 나옵니다.</div>
+  </section>
+
+  <div id="dash" hidden>
+    <section class="kpis" style="margin-bottom:16px">
+      <div class="kpi hero"><div class="lab">전체 방문자</div><div class="val" id="kVisitors">–</div><div class="sub" id="kViews">방문 – 회</div></div>
+      <div class="kpi"><div class="lab">오늘 방문자</div><div class="val" id="kToday">–</div><div class="sub" id="kTodayViews">방문 – 회</div></div>
+      <div class="kpi"><div class="lab">최근 7일 방문자</div><div class="val" id="kWeek">–</div><div class="sub" id="kWeekViews">방문 – 회</div></div>
+      <div class="kpi"><div class="lab">기록 시작</div><div class="val" id="kFirst" style="font-size:1.25rem;margin-top:10px">–</div><div class="sub" id="kLast">마지막 방문 –</div></div>
+    </section>
+
+    <section class="card">
+      <h2>날짜별 방문자 <small id="daysLabel">최근 30일 · 막대 하나 = 하루의 고유 방문자</small></h2>
+      <div class="chart" id="dayChart"></div>
+    </section>
+
+    <div class="two">
+      <section class="card">
+        <h2>페이지별 <small>어느 편지지를 열었나</small></h2>
+        <div id="pageTbl"></div>
+      </section>
+      <section class="card">
+        <h2>유입 경로 <small>처음 어디서 들어왔나</small></h2>
+        <div id="srcTbl"></div>
+        <p class="note" style="margin:10px 0 0">링크에 <code>?from=kakao</code> 처럼 붙여 두면 그 이름으로 잡히고, 없으면 보낸 사이트 주소(referrer), 그것도 없으면 <b>direct</b>(카톡·주소창 직접 입력 등)로 잡힙니다.</p>
+      </section>
+    </div>
+
+    <div class="two">
+      <section class="card">
+        <h2>기기 <small>방문자 기준</small></h2>
+        <div id="devTbl"></div>
+      </section>
+      <section class="card">
+        <h2>시간대 <small id="hourLabel">최근 30일 · 방문 횟수</small></h2>
+        <div class="chart" id="hourChart"></div>
+      </section>
+    </div>
+
+    <p class="note">같은 사람이 같은 페이지를 30분 안에 다시 열면 한 번으로 셉니다. 방문자는 브라우저마다 만들어 두는 임의 ID 로 구분해서, 같은 사람이 폰과 컴퓨터로 오면 2명으로 잡힙니다. 편지 내용·이름은 기록되지 않습니다. 시각은 한국 시간 기준.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var U="https://vbvtnmnodeoocbbjauap.supabase.co";
+  var K="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZidnRubW5vZGVvb2NiYmphdWFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0OTQ0OTYsImV4cCI6MjA5NTA3MDQ5Nn0.dvuRrt3qw2Tya_QwGbcXrmGPdfDgI4xmgyH8UjU73Nc";
+  var PAGES={
+    index:"💌 허브(시작 페이지)", lucky:"🍀 행운 편지", birthday:"🎂 생일 축하", thanks:"💌 감사 편지",
+    anniversary:"🎗️ 기념일", welcome:"🌱 새 학기 환영", farewell:"🎓 마무리·졸업", christmas:"🎄 크리스마스·연말",
+    future:"⏳ 미래의 나에게", rollingpaper:"🎡 학급 롤링페이퍼"
+  };
+  var DEV={mobile:"📱 모바일", desktop:"💻 컴퓨터", other:"기타"};
+  var $=function(s){ return document.querySelector(s); };
+  var esc=function(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); };
+  var n=function(x){ return Number(x||0).toLocaleString("ko-KR"); };
+  var WD=["일","월","화","수","목","금","토"];
+  function fmtDay(iso){ var d=new Date(iso+"T00:00:00"); return (d.getMonth()+1)+"/"+d.getDate()+" ("+WD[d.getDay()]+")"; }
+  function fmtShort(iso, monthOnly){ var d=new Date(iso+"T00:00:00"); return monthOnly?(d.getMonth()+1)+"월":(d.getMonth()+1)+"/"+d.getDate(); }
+  function fmtT(t){ if(!t) return "–"; var d=new Date(t); return d.toLocaleString("ko-KR",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}); }
+  function todayKST(){ var d=new Date(Date.now()+9*3600*1000); return d.toISOString().slice(0,10); }
+  function say(t,c){ var m=$("#msg"); m.innerHTML=t; m.className="msg "+(c||""); }
+
+  try{ var k=localStorage.getItem("lm_stats_key"); if(k){ $("#key").value=k; } }catch(e){}
+  $("#go").addEventListener("click",load);
+  $("#key").addEventListener("keydown",function(e){ if(e.key==="Enter") load(); });
+  $("#days").addEventListener("change",function(){ if(!$("#dash").hidden) load(); });
+
+  async function load(){
+    var key=$("#key").value.trim().toUpperCase();
+    if(key.length<6){ say("관리 키를 넣어 주세요","err"); return; }
+    $("#go").disabled=true; say("불러오는 중…");
+    try{
+      var res=await fetch(U+"/rest/v1/rpc/letter_visit_stats",{method:"POST",
+        headers:{"Content-Type":"application/json","apikey":K,"Authorization":"Bearer "+K},
+        body:JSON.stringify({p_key:key,p_days:+$("#days").value})});
+      var body=await res.json().catch(function(){ return {}; });
+      if(!res.ok){
+        var m=String(body.message||body.hint||res.status);
+        if(res.status===404||/function|schema cache/i.test(m)) throw new Error("서버에 아직 표가 없어요 — Supabase 에서 편지메이커_방문기록_SETUP.sql 을 먼저 실행하세요");
+        throw new Error(m);
+      }
+      try{ if($("#keep").checked) localStorage.setItem("lm_stats_key",key); else localStorage.removeItem("lm_stats_key"); }catch(e){}
+      paint(body);
+      say("✅ 불러왔어요 · "+fmtT(body.generated_at),"ok");
+      $("#dash").hidden=false;
+    }catch(err){ say("❌ "+esc(err.message||err),"err"); }
+    finally{ $("#go").disabled=false; }
+  }
+
+  function paint(d){
+    var t=d.total||{}, td=d.today||{}, wk=d.week||{};
+    $("#kVisitors").textContent=n(t.visitors);   $("#kViews").textContent="방문 "+n(t.views)+"회";
+    $("#kToday").textContent=n(td.visitors);     $("#kTodayViews").textContent="방문 "+n(td.views)+"회";
+    $("#kWeek").textContent=n(wk.visitors);      $("#kWeekViews").textContent="방문 "+n(wk.views)+"회";
+    $("#kFirst").textContent=t.first_at?new Date(t.first_at).toLocaleDateString("ko-KR",{year:"numeric",month:"numeric",day:"numeric"}):"아직 없음";
+    $("#kLast").textContent="마지막 방문 "+fmtT(t.last_at);
+    $("#daysLabel").textContent="최근 "+d.days+"일 · 막대 하나 = 하루의 고유 방문자";
+    $("#hourLabel").textContent="최근 "+d.days+"일 · 방문 횟수";
+    paintDays(d.by_day||[], d.days||30);
+    paintPages(d.by_page||[]);
+    paintSrc(d.by_src||[]);
+    paintDev(d.by_device||[]);
+    paintHours(d.by_hour||[]);
+  }
+
+  function paintDays(rows, days){
+    var box=$("#dayChart"); box.innerHTML="";
+    var map={}; rows.forEach(function(r){ map[r.day]=r; });
+    var list=[], today=todayKST(), base=new Date(today+"T00:00:00");
+    for(var i=days-1;i>=0;i--){
+      var dt=new Date(base.getTime()-i*86400000), iso=dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0");
+      var r=map[iso]||{day:iso,views:0,visitors:0}; r.day=iso; list.push(r);
+    }
+    var max=Math.max.apply(null,list.map(function(r){ return +r.visitors; }).concat([1]));
+    var yl=document.createElement("div"); yl.className="ylab"; yl.textContent="최대 "+n(max)+"명"; box.appendChild(yl);
+    var cols=document.createElement("div"); cols.className="cols"; cols.style.gridTemplateColumns="repeat("+days+", 1fr)";
+    var xl=document.createElement("div"); xl.className="xlab"; xl.style.gridTemplateColumns="repeat("+days+", 1fr)";
+    var tip=document.createElement("div"); tip.className="tip";
+    var every=days<=14?1:days<=30?3:days<=90?10:30;
+    list.forEach(function(r,i){
+      var c=document.createElement("div"); c.className="col"+(r.day===today?" today":"");
+      var b=document.createElement("div"); b.className="bar"; b.style.height=(max?(+r.visitors/max*100):0)+"%";
+      if(+r.visitors===0){ b.style.height="2px"; b.style.background="var(--bar-soft)"; }
+      c.appendChild(b); cols.appendChild(c);
+      var s=document.createElement("span"); s.textContent=(i%every===0||r.day===today)?fmtShort(r.day, days>90):""; xl.appendChild(s);
+      c.addEventListener("mouseenter",function(){ tip.textContent=fmtDay(r.day)+" · 방문자 "+n(r.visitors)+"명 · 방문 "+n(r.views)+"회"; tip.style.left=(c.offsetLeft+c.offsetWidth/2)+"px"; tip.style.top=(c.offsetTop+(c.offsetHeight-b.offsetHeight))+"px"; tip.classList.add("show"); });
+      c.addEventListener("mouseleave",function(){ tip.classList.remove("show"); });
+    });
+    box.appendChild(cols); box.appendChild(xl); box.appendChild(tip);
+  }
+
+  function table(rows, nameOf, opts){
+    if(!rows.length) return '<div class="empty">아직 기록이 없어요</div>';
+    var max=Math.max.apply(null,rows.map(function(r){ return +r.visitors; }).concat([1]));
+    var h='<table><thead><tr><th>'+esc(opts.head)+'</th><th></th><th class="num">방문자</th><th class="num">방문</th></tr></thead><tbody>';
+    rows.forEach(function(r){
+      h+='<tr><td class="name">'+esc(nameOf(r))+'</td>'
+        +'<td class="barcell"><div class="hbar main" style="width:'+(+r.visitors/max*100).toFixed(1)+'%"></div></td>'
+        +'<td class="num"><b>'+n(r.visitors)+'</b></td><td class="num">'+n(r.views)+'</td></tr>';
+    });
+    return h+'</tbody></table>';
+  }
+  function paintPages(rows){ $("#pageTbl").innerHTML=table(rows,function(r){ return PAGES[r.page]||r.page; },{head:"페이지"}); }
+  function paintSrc(rows){ $("#srcTbl").innerHTML=table(rows,function(r){ return r.src==="direct"?"direct (카톡·직접 입력)":r.src; },{head:"경로"}); }
+  function paintDev(rows){ $("#devTbl").innerHTML=table(rows,function(r){ return DEV[r.device]||r.device; },{head:"기기"}); }
+
+  function paintHours(rows){
+    var box=$("#hourChart"); box.innerHTML="";
+    var map={}; rows.forEach(function(r){ map[r.hour]=+r.views; });
+    var max=Math.max.apply(null,Object.keys(map).map(function(k){ return map[k]; }).concat([1]));
+    if(!rows.length){ box.innerHTML='<div class="empty">아직 기록이 없어요</div>'; return; }
+    var cols=document.createElement("div"); cols.className="hours";
+    var xl=document.createElement("div"); xl.className="hlab";
+    var tip=document.createElement("div"); tip.className="tip";
+    for(var h=0;h<24;h++){
+      (function(h){
+        var v=map[h]||0, c=document.createElement("div"); c.className="col";
+        var b=document.createElement("div"); b.className="bar"; b.style.height=(v/max*100)+"%";
+        if(!v){ b.style.height="2px"; b.style.background="var(--bar-soft)"; }
+        c.appendChild(b); cols.appendChild(c);
+        var s=document.createElement("span"); s.textContent=(h%6===0)?h+"시":""; xl.appendChild(s);
+        c.addEventListener("mouseenter",function(){ tip.textContent=h+"시~"+(h+1)+"시 · 방문 "+n(v)+"회"; tip.style.left=(c.offsetLeft+c.offsetWidth/2)+"px"; tip.style.top=(c.offsetTop+(c.offsetHeight-b.offsetHeight))+"px"; tip.classList.add("show"); });
+        c.addEventListener("mouseleave",function(){ tip.classList.remove("show"); });
+      })(h);
+    }
+    box.appendChild(cols); box.appendChild(xl); box.appendChild(tip);
+  }
+
+  if($("#key").value.length>=6) load();
+})();
+</script>
+<footer id="app-credit" style="width:100%;box-sizing:border-box;margin:2.5rem 0 0;padding:14px 12px;text-align:center;font-size:12.5px;line-height:1.6;color:#8a8f98;font-family:system-ui,-apple-system,'Segoe UI','Malgun Gothic',sans-serif;border-top:1px solid rgba(128,128,128,.25);">© 2026 조승재(과학이조선생) · 해누리중학교 · All rights reserved<br><span style="font-size:11px;opacity:.85;">최종 업데이트: 2026-09-13</span></footer>
+</body>
+</html>
